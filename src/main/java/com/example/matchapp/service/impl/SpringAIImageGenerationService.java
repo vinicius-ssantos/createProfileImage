@@ -3,6 +3,7 @@ package com.example.matchapp.service.impl;
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.service.ImageGenerationService;
+import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,11 +29,13 @@ public class SpringAIImageGenerationService implements ImageGenerationService {
     private final RestTemplate restTemplate;
     private final String apiKey;
     private final String baseUrl;
+    private final PromptBuilderService promptBuilder;
 
     @Autowired
-    public SpringAIImageGenerationService(ImageGenProperties properties) {
+    public SpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
         this.apiKey = properties.getApiKey();
         this.baseUrl = properties.getBaseUrl();
+        this.promptBuilder = promptBuilder;
         this.restTemplate = new RestTemplate();
     }
 
@@ -50,7 +53,8 @@ public class SpringAIImageGenerationService implements ImageGenerationService {
 
                 // Create request body
                 Map<String, Object> requestBody = new HashMap<>();
-                requestBody.put("prompt", profile.bio());
+                String prompt = promptBuilder.buildPrompt(profile);
+                requestBody.put("prompt", prompt);
                 requestBody.put("n", 1);
                 requestBody.put("size", "1024x1024");
                 requestBody.put("response_format", "b64_json");

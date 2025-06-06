@@ -3,6 +3,7 @@ package com.example.matchapp.service.impl;
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.service.ImageGenerationService;
+import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -21,9 +22,11 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
 
     private final WebClient webClient;
     private final String apiKey;
+    private final PromptBuilderService promptBuilder;
 
-    public OpenAIImageGenerationService(ImageGenProperties properties) {
+    public OpenAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
         this.apiKey = properties.getApiKey();
+        this.promptBuilder = promptBuilder;
 
         if (!StringUtils.hasText(apiKey) || "your_openai_key_here".equals(apiKey)) {
             logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
@@ -41,8 +44,9 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
         MDC.put("profileId", profile.id());
         try {
             logger.info("Requesting image generation");
+            String prompt = promptBuilder.buildPrompt(profile);
             Map<String, Object> request = Map.of(
-                    "prompt", profile.bio(),
+                    "prompt", prompt,
                     "n", 1,
                     "size", "1024x1024",
                     "response_format", "b64_json"
