@@ -1,0 +1,222 @@
+[
+  {
+    "id": "04b28dca-c0b5-4219-bed7-231584feb65a",
+    "firstName": "Valentina",
+    "lastName": "Rodriguez",
+    "age": 29,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Loves to travel and capture moments with her camera.",
+    "imageUrl": "d775a193-0a76-42e2-a7f6-e8c20c2420b7.jpg",
+    "myersBriggsPersonalityType": "ESTJ"
+  },
+  {
+    "id": "d06776f8-2342-491f-b884-690d27930b79",
+    "firstName": "Camila",
+    "lastName": "Silva",
+    "age": 27,
+    "ethnicity": "Hispanic",
+    "gender": "FEMALE",
+    "bio": "Aspiring chef who enjoys blending global cuisines.",
+    "imageUrl": "fb12242e-7568-4db8-8a08-4a90f49085ea.jpg",
+    "myersBriggsPersonalityType": "ESFJ"
+  },
+  {
+    "id": "2453086d-49e4-42d2-9f4e-4a2b2ec121a6",
+    "firstName": "Luna",
+    "lastName": "Fernandez",
+    "age": 26,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Yoga instructor focused on holistic wellness.",
+    "imageUrl": "1d68613c-ff1d-4f02-8364-56c14162bb0c.jpg",
+    "myersBriggsPersonalityType": "ESTJ"
+  },
+  {
+    "id": "5368db0e-8352-494d-b76d-a07e651c45e8",
+    "firstName": "Isabela",
+    "lastName": "Martinez",
+    "age": 33,
+    "ethnicity": "Mixed",
+    "gender": "FEMALE",
+    "bio": "Tech-savvy and always curious about the next big innovation.",
+    "imageUrl": "42c36aa2-0217-4472-8ecc-f507b78f65b8.jpg",
+    "myersBriggsPersonalityType": "ENTP"
+  },
+  {
+    "id": "0bb004ed-644b-439d-ba7b-4821febde6b2",
+    "firstName": "Fernanda",
+    "lastName": "Oliveira",
+    "age": 34,
+    "ethnicity": "Black",
+    "gender": "FEMALE",
+    "bio": "Book lover and amateur poet.",
+    "imageUrl": "2273faca-8605-409d-bc8d-891bad0b8938.jpg",
+    "myersBriggsPersonalityType": "ISTP"
+  },
+  {
+    "id": "26c6374f-b071-4740-af31-b34defcd286c",
+    "firstName": "Sofia",
+    "lastName": "Costa",
+    "age": 30,
+    "ethnicity": "Mixed",
+    "gender": "FEMALE",
+    "bio": "Nature enthusiast and animal rights advocate.",
+    "imageUrl": "625e7b34-3e42-44de-99f0-ae0a23b54aac.jpg",
+    "myersBriggsPersonalityType": "INFJ"
+  },
+  {
+    "id": "9b89acf1-b9f1-4043-92a6-e755815a9e60",
+    "firstName": "Larissa",
+    "lastName": "Santos",
+    "age": 24,
+    "ethnicity": "Mixed",
+    "gender": "FEMALE",
+    "bio": "Passionate about storytelling through digital media.",
+    "imageUrl": "cc8442a7-68cd-41be-9845-691da750d5fd.jpg",
+    "myersBriggsPersonalityType": "INFP"
+  },
+  {
+    "id": "a421619d-4cdf-4f6c-9b6c-b139eaf93dd2",
+    "firstName": "Mariana",
+    "lastName": "Barbosa",
+    "age": 26,
+    "ethnicity": "White",
+    "gender": "FEMALE",
+    "bio": "Psychology major fascinated by human behavior.",
+    "imageUrl": "e6ac0bf0-bcba-42b7-a185-d0df4d913ac7.jpg",
+    "myersBriggsPersonalityType": "ISTP"
+  },
+  {
+    "id": "32477a40-69d2-43e9-83ac-80f5ebd140c7",
+    "firstName": "Giovana",
+    "lastName": "Lima",
+    "age": 24,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Volunteer in youth education programs.",
+    "imageUrl": "573754d3-2172-40a8-8a4a-fa3ea2322917.jpg",
+    "myersBriggsPersonalityType": "ESFJ"
+  },
+  {
+    "id": "296c8248-1c59-410a-8fe0-15be9d6e0538",
+    "firstName": "Bruna",
+    "lastName": "Carvalho",
+    "age": 25,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Dreams of publishing her own novel someday.",
+    "imageUrl": "72e24b9c-0d61-4b73-a5a1-001e9f5e927a.jpg",
+    "myersBriggsPersonalityType": "ESFJ"
+  },
+  {
+    "id": "ec071a89-c878-40b1-b7c6-cf23a0e37808",
+    "firstName": "Carolina",
+    "lastName": "Moraes",
+    "age": 22,
+    "ethnicity": "Hispanic",
+    "gender": "FEMALE",
+    "bio": "Advocate for environmental sustainability and green living.",
+    "imageUrl": "2d0dea50-f0df-4b89-bb26-9c9b32bbcfa2.jpg",
+    "myersBriggsPersonalityType": "INFP"
+  },
+  {
+    "id": "87d2e44d-e4b8-42d2-9ceb-78042c300d3c",
+    "firstName": "Renata",
+    "lastName": "Souza",
+    "age": 27,
+    "ethnicity": "White",
+    "gender": "FEMALE",
+    "bio": "Historian who enjoys reenactment events.",
+    "imageUrl": "99cf2ed8-9ca9-4c9d-81a8-2c4c6aaefc1d.jpg",
+    "myersBriggsPersonalityType": "INFP"
+  },
+  {
+    "id": "419ec931-b00d-4c9b-89ea-3f90376fb9fc",
+    "firstName": "Tatiane",
+    "lastName": "Teixeira",
+    "age": 32,
+    "ethnicity": "Hispanic",
+    "gender": "FEMALE",
+    "bio": "Pianist and music teacher in her free time.",
+    "imageUrl": "d103a552-c946-46b4-bc2c-92f278d723ad.jpg",
+    "myersBriggsPersonalityType": "ESTJ"
+  },
+  {
+    "id": "b797624c-5936-4af8-865f-dda3eb91398c",
+    "firstName": "Patrícia",
+    "lastName": "Ramos",
+    "age": 27,
+    "ethnicity": "Hispanic",
+    "gender": "FEMALE",
+    "bio": "Fitness coach who motivates others to reach their goals.",
+    "imageUrl": "e80b17a2-35a2-4e24-889c-4eb315b61076.jpg",
+    "myersBriggsPersonalityType": "ENTP"
+  },
+  {
+    "id": "0290ca01-e8bf-4cfa-bd16-bb0d69496eb2",
+    "firstName": "Aline",
+    "lastName": "Pereira",
+    "age": 29,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Podcaster discussing social issues with empathy.",
+    "imageUrl": "145accd2-0c4a-4b43-bb80-a71b4ad2d34c.jpg",
+    "myersBriggsPersonalityType": "ENFP"
+  },
+  {
+    "id": "03fd849d-ad0b-4abf-8db8-8d3ff5f7eafe",
+    "firstName": "Juliana",
+    "lastName": "Gomes",
+    "age": 31,
+    "ethnicity": "White",
+    "gender": "FEMALE",
+    "bio": "Photographer always chasing the golden hour.",
+    "imageUrl": "823b86f3-b8e7-4a22-9d0d-be25a3c925c7.jpg",
+    "myersBriggsPersonalityType": "INFP"
+  },
+  {
+    "id": "3f587d67-6f55-43fc-a1f5-c73999a7ece8",
+    "firstName": "Manuela",
+    "lastName": "Almeida",
+    "age": 31,
+    "ethnicity": "Asian",
+    "gender": "FEMALE",
+    "bio": "Dancer and choreographer passionate about movement.",
+    "imageUrl": "3b19a5b9-7ac8-4e17-aa2e-b378a1349390.jpg",
+    "myersBriggsPersonalityType": "INTJ"
+  },
+  {
+    "id": "c06461d6-b187-4746-b291-706a4c1e4d77",
+    "firstName": "Beatriz",
+    "lastName": "Azevedo",
+    "age": 33,
+    "ethnicity": "White",
+    "gender": "FEMALE",
+    "bio": "Art student exploring abstract expressionism.",
+    "imageUrl": "3edbe29d-41cf-428f-b6d4-39eca84019b9.jpg",
+    "myersBriggsPersonalityType": "INFJ"
+  },
+  {
+    "id": "ce1479e6-ad3f-4987-865e-0ebb8786eaab",
+    "firstName": "Bianca",
+    "lastName": "Nascimento",
+    "age": 24,
+    "ethnicity": "Black",
+    "gender": "FEMALE",
+    "bio": "Digital nomad working as a UX designer.",
+    "imageUrl": "1073be56-d805-4b18-b4c8-293e3337fbe8.jpg",
+    "myersBriggsPersonalityType": "ESTJ"
+  },
+  {
+    "id": "77188513-f6dd-431b-801a-d1ed75d29665",
+    "firstName": "Débora",
+    "lastName": "Vieira",
+    "age": 27,
+    "ethnicity": "Mixed",
+    "gender": "FEMALE",
+    "bio": "Science communicator and space exploration fan.",
+    "imageUrl": "75b14948-d1f6-4da0-8a07-65df54a9def7.jpg",
+    "myersBriggsPersonalityType": "ESTJ"
+  }
+]
