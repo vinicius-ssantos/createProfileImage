@@ -1,6 +1,7 @@
 package com.example.matchapp.service;
 
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.repository.ProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
@@ -8,6 +9,7 @@ import org.mockito.Mockito;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,11 +20,33 @@ class ProfileServiceTest {
 
     @Test
     void generateImages_createsFiles() throws Exception {
+        // Mock the image generation service
         ImageGenerationService imageGenerationService = Mockito.mock(ImageGenerationService.class);
         Mockito.when(imageGenerationService.generateImage(Mockito.any(Profile.class)))
                 .thenReturn(new byte[] {1, 2, 3});
 
-        ProfileService profileService = new ProfileService(imageGenerationService);
+        // Mock the profile repository
+        ProfileRepository profileRepository = Mockito.mock(ProfileRepository.class);
+
+        // Create a test profile
+        Profile testProfile = new Profile(
+            UUID.randomUUID().toString(),
+            "Test",
+            "User",
+            30,
+            "Test Ethnicity",
+            "Male",
+            "Test bio for image generation",
+            "test.jpg",
+            "INTJ"
+        );
+
+        // Configure the mock repository to return our test profile
+        Mockito.when(profileRepository.findAll()).thenReturn(List.of(testProfile));
+        Mockito.when(profileRepository.findById(Mockito.anyString())).thenReturn(java.util.Optional.of(testProfile));
+        Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenAnswer(i -> i.getArgument(0));
+
+        ProfileService profileService = new ProfileService(imageGenerationService, profileRepository);
 
         List<Profile> result = profileService.generateImages(tempDir);
 
@@ -35,4 +59,3 @@ class ProfileServiceTest {
         assertTrue(Files.exists(jsonPath), "Result JSON not created");
     }
 }
-

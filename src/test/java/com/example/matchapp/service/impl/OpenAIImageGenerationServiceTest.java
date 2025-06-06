@@ -15,7 +15,7 @@ class OpenAIImageGenerationServiceTest {
         private Map<String, Object> capturedRequest;
 
         TestOpenAIImageGenerationService(ImageGenProperties properties) {
-            super(properties);
+            super(properties, new DefaultPromptBuilderService());
         }
 
         @Override
