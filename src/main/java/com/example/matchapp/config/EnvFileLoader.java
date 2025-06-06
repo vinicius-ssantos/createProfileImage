@@ -23,6 +23,11 @@ public class EnvFileLoader {
     private static final String ENV_FILE_PATH = ".env";
     private static final Pattern ENV_ENTRY_PATTERN = Pattern.compile("^\\s*([\\w.-]+)\\s*=\\s*(.*)\\s*$");
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        loadEnvFile();
+    }
+
     /**
      * Loads environment variables from the .env file.
      * If the file doesn't exist, it creates one with default values.
