@@ -1,0 +1,12 @@
+### Gerar imagem usando OpenAI
+POST {{OPENAI_BASE_URL:https://api.openai.com/v1/images/generations}}
+Authorization: Bearer {{OPENAI_API_KEY}}
+Content-Type: application/json
+
+{
+  "prompt": "Mulher hispânica de 26 anos com sorriso amigável",
+  "n": 1,
+  "size": "1024x1024",
+  "response_format": "b64_json"
+}
+
