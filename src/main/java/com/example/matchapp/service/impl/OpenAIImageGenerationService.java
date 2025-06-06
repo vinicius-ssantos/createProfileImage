@@ -39,18 +39,28 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
                 .build();
     }
 
+    /**
+     * Builds the request body for the OpenAI image generation API.
+     * Exposed as a protected method to allow inspection in tests.
+     */
+    protected Map<String, Object> createRequest(Profile profile) {
+        return Map.of(
+                "prompt", profile.bio(),
+                "n", 1,
+                "size", "1024x1024",
+                "response_format", "b64_json",
+                "model", "dall-e-3"
+        );
+    }
+
     @Override
     public byte[] generateImage(Profile profile) {
         MDC.put("profileId", profile.id());
         try {
             logger.info("Requesting image generation");
-            String prompt = promptBuilder.buildPrompt(profile);
-            Map<String, Object> request = Map.of(
-                    "prompt", prompt,
-                    "n", 1,
-                    "size", "1024x1024",
-                    "response_format", "b64_json"
-            );
+
+            Map<String, Object> request = createRequest(profile);
+
 
             try {
                 // This call returns JSON with base64 image.
