@@ -26,8 +26,8 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
         this.apiKey = properties.getApiKey();
 
         if (!StringUtils.hasText(apiKey) || "your_openai_key_here".equals(apiKey)) {
-            logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file.");
-            throw new IllegalStateException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file.");
+            logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
+            throw new IllegalStateException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
         }
 
         this.webClient = WebClient.builder()
@@ -70,8 +70,8 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
                 return java.util.Base64.getDecoder().decode(base64);
             } catch (Exception e) {
                 if (e.getMessage() != null && e.getMessage().contains("401 Unauthorized")) {
-                    logger.error("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
-                    throw new IllegalStateException("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
+                    logger.error("Authentication failed with OpenAI API. Please check your API key in the .env file or system environment variables.", e);
+                    throw new IllegalStateException("Authentication failed with OpenAI API. Please check your API key in the .env file or system environment variables.", e);
                 } else {
                     logger.error("Error generating image with OpenAI API", e);
                     throw new RuntimeException("Error generating image with OpenAI API: " + e.getMessage(), e);
