@@ -2,6 +2,7 @@ package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.service.PromptBuilderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,25 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class SpringAIImageGenerationServiceTest {
 
+    private static class StubPromptBuilderService implements PromptBuilderService {
+        private Profile lastProfile;
+        private final String prompt;
+
+        StubPromptBuilderService(String prompt) {
+            this.prompt = prompt;
+        }
+
+        @Override
+        public String buildPrompt(Profile profile) {
+            this.lastProfile = profile;
+            return prompt;
+        }
+
+        public Profile getLastProfile() {
+            return lastProfile;
+        }
+    }
+
     // Test implementation that doesn't make real API calls
     private static class TestSpringAIImageGenerationService extends SpringAIImageGenerationService {
         private Map<String, Object> mockResponse;
@@ -23,8 +43,8 @@ class SpringAIImageGenerationServiceTest {
         private String capturedPrompt;
         private Map<String, Object> capturedRequestBody;
 
-        public TestSpringAIImageGenerationService(ImageGenProperties properties) {
-            super(properties);
+        public TestSpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
+            super(properties, promptBuilder);
         }
 
         // Method to set the mock response
@@ -65,6 +85,7 @@ class SpringAIImageGenerationServiceTest {
     }
 
     private TestSpringAIImageGenerationService service;
+    private StubPromptBuilderService promptBuilder;
 
     @BeforeEach
     void setUp() {
@@ -73,8 +94,9 @@ class SpringAIImageGenerationServiceTest {
         properties.setApiKey("test-api-key");
         properties.setBaseUrl("https://api.openai.com");
 
+        promptBuilder = new StubPromptBuilderService("built prompt");
         // Create test service with test properties
-        service = new TestSpringAIImageGenerationService(properties);
+        service = new TestSpringAIImageGenerationService(properties, promptBuilder);
     }
 
     @Test
@@ -112,8 +134,9 @@ class SpringAIImageGenerationServiceTest {
         assertNotNull(result);
         assertArrayEquals(expectedBytes, result);
 
-        // Verify the correct prompt and request body were used
-        assertEquals("Test bio for image generation", service.getCapturedPrompt());
+        // Verify the prompt came from the builder
+        assertEquals("built prompt", service.getCapturedPrompt());
+        assertSame(profile, promptBuilder.getLastProfile());
 
         Map<String, Object> requestBody = service.getCapturedRequestBody();
         assertEquals(1, requestBody.get("n"));
