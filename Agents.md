@@ -126,10 +126,3 @@ Estilo: fotografia digital, nitidez moderada, cores naturais, sem marca d’águ
 Arquivo de saída: 97da7cbd-cd8b-4629-a95c-5b157a3464b5.jpg
 ```
 
----
-
-## 8 — Limitações éticas
-
-* As pessoas são fictícias; evitar semelhança com indivíduos reais.
-* Proibir conteúdo sensível, violento ou sexual.
-* Representar diversidade de forma digna e respeitosa.
