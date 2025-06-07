@@ -1,6 +1,7 @@
 package com.example.matchapp.dto;
 
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.Gender;
 
 /**
  * DTO for profile responses.
@@ -12,7 +13,7 @@ public record ProfileResponse(
         String lastName,
         int age,
         String ethnicity,
-        String gender,
+        Gender gender,
         String bio,
         String imageUrl,
         String myersBriggsPersonalityType,

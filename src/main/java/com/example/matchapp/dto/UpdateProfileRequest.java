@@ -2,6 +2,7 @@ package com.example.matchapp.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import com.example.matchapp.model.Gender;
 
 /**
  * DTO for updating an existing profile.
@@ -16,7 +17,7 @@ public record UpdateProfileRequest(
         Integer age,
         
         String ethnicity,
-        String gender,
+        Gender gender,
         String bio,
         String imageUrl,
         String myersBriggsPersonalityType
