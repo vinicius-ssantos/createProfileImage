@@ -44,7 +44,7 @@ class SpringAIImageGenerationServiceTest {
         private Map<String, Object> capturedRequestBody;
 
         public TestSpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
-            super(properties, promptBuilder);
+            super(properties, promptBuilder, () -> { /* no-op */ });
         }
 
         // Method to set the mock response

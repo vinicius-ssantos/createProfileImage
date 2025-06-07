@@ -26,7 +26,7 @@ class OpenAIImageGenerationServiceTest {
         private Map<String, Object> capturedRequest;
 
         TestOpenAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
-            super(properties, promptBuilder, createTestRetryTemplate());
+            super(properties, promptBuilder, createTestRetryTemplate(), () -> { /* no-op */ });
         }
 
         private static org.springframework.retry.support.RetryTemplate createTestRetryTemplate() {

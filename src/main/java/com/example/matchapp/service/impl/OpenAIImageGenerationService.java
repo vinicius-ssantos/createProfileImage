@@ -42,15 +42,18 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
     private final String apiKey;
     private final PromptBuilderService promptBuilder;
     private final RetryTemplate retryTemplate;
+    private final com.example.matchapp.service.RateLimiterService rateLimiter;
     private final Map<String, String> cookies = new HashMap<>();
 
     public OpenAIImageGenerationService(
-            ImageGenProperties properties, 
+            ImageGenProperties properties,
             PromptBuilderService promptBuilder,
-            RetryTemplate retryTemplate) {
+            RetryTemplate retryTemplate,
+            com.example.matchapp.service.RateLimiterService rateLimiter) {
         this.apiKey = properties.getApiKey();
         this.promptBuilder = promptBuilder;
         this.retryTemplate = retryTemplate;
+        this.rateLimiter = rateLimiter;
 
         if (!StringUtils.hasText(apiKey) || "your_openai_key_here".equals(apiKey)) {
             logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
@@ -129,6 +132,7 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
         MDC.put("profileId", profile.id());
         try {
             logger.info("Requesting image generation");
+            rateLimiter.acquire();
 
             return retryTemplate.execute(context -> {
                 // If this is a retry, log the retry count

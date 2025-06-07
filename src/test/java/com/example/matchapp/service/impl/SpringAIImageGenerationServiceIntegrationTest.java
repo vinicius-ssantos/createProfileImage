@@ -49,7 +49,7 @@ class SpringAIImageGenerationServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        service = new SpringAIImageGenerationService(properties, promptBuilderService);
+        service = new SpringAIImageGenerationService(properties, promptBuilderService, () -> { /* no-op */ });
     }
 
     /**

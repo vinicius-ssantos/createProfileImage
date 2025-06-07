@@ -30,13 +30,16 @@ public class SpringAIImageGenerationService implements ImageGenerationService {
     private final String apiKey;
     private final String baseUrl;
     private final PromptBuilderService promptBuilder;
+    private final com.example.matchapp.service.RateLimiterService rateLimiter;
 
     @Autowired
-    public SpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
+    public SpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder,
+                                          com.example.matchapp.service.RateLimiterService rateLimiter) {
         this.apiKey = properties.getApiKey();
         this.baseUrl = properties.getBaseUrl();
         this.promptBuilder = promptBuilder;
         this.restTemplate = new RestTemplate();
+        this.rateLimiter = rateLimiter;
     }
 
     @Override
@@ -44,6 +47,7 @@ public class SpringAIImageGenerationService implements ImageGenerationService {
         MDC.put("profileId", profile.id());
         try {
             logger.info("Requesting image generation using Spring AI");
+            rateLimiter.acquire();
 
             try {
                 // Set up headers with API key
