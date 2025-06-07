@@ -2,7 +2,7 @@
 
 ## 1 — Contexto do projeto
 
-* **Stack:** Java 17 +, Spring Boot 3, Maven.
+* **Stack:** Java 21 +, Spring Boot 3, Maven.
 * **Estrutura Padrão:**
 
 ```text
@@ -45,9 +45,10 @@ A **chave de API deve estar configurada via variável de ambiente** e lida a par
 
 ```env
 OPENAI_API_KEY=your_openai_key_here
+OPENAI_BASE_URL=https://api.openai.com/v1/images/generations
 ```
 
-Um exemplo desse arquivo está disponível em `.env.exemplo`.
+Um exemplo desse arquivo está disponível em `.env.exemplo`. O projeto carrega automaticamente o arquivo `.env` usando `EnvFileLoader` se ele existir.
 
 ---
 
@@ -94,7 +95,8 @@ Um exemplo desse arquivo está disponível em `.env.exemplo`.
 
 ## 6 — Requisitos de integração & código
 
-* **Serviço:** `ImageGenerationService` (interface) → implementação `OpenAIImageGenerationService` para permitir *dependency inversion*.
+* **Serviço:** `ImageGenerationService` (interface) → implementação `SpringAIImageGenerationService` (bean primário) ou `OpenAIImageGenerationService` para permitir *dependency inversion*.
+* **Geração de prompt:** use `PromptBuilderService` para criar prompts ricos a partir dos atributos do perfil. A implementação padrão é `DefaultPromptBuilderService`.
 * `ProfileService` carrega `profile.json` (Jackson) e delega ao `ImageGenerationService`.
 * `ImageGenProperties` usa `@ConfigurationProperties` para chave de API, timeout etc.; não hardcodar.
 * `.env` deve ser carregado automaticamente (ex: usando biblioteca `dotenv-java`).
@@ -103,7 +105,9 @@ Um exemplo desse arquivo está disponível em `.env.exemplo`.
 
   * `ProfileServiceTest` usando `@TempDir` para verificar gravação de arquivos.
   * Mock do cliente HTTP simulando resposta binária da imagem.
-* **CI:** estágio **verify** (`mvn test`) e **package**; falhas de teste quebram o build.
+* **CI:** estágio **verify** (`mvn test` ou `./mvnw test`) e **package**; falhas de teste quebram o build.
+* **API REST:** a aplicação expõe endpoints em `/api` para CRUD de perfis e geração de imagens. Consulte `README.md` para exemplos de uso via `curl` ou `api_tests.http`.
+* **Execução local:** utilize `mvn spring-boot:run` (ou `./mvnw spring-boot:run`) para iniciar o serviço na porta `8080`.
 
 ---
 
