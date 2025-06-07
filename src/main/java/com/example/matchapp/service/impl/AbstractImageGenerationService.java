@@ -2,7 +2,7 @@ package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.exception.ImageGenerationException;
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
 import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
@@ -29,8 +29,8 @@ public abstract class AbstractImageGenerationService implements ImageGenerationS
     }
 
     @Override
-    public byte[] generateImage(Profile profile) {
-        LoggingUtils.setProfileId(profile.id());
+    public byte[] generateImage(ProfileEntity profile) {
+        LoggingUtils.setProfileId(profile.getId());
 
         try {
             logger.info("Requesting image generation from provider: {}", getProviderName());
@@ -53,7 +53,7 @@ public abstract class AbstractImageGenerationService implements ImageGenerationS
      * @return the generated image as a byte array
      * @throws Exception if image generation fails
      */
-    protected abstract byte[] generateImageFromProvider(Profile profile) throws Exception;
+    protected abstract byte[] generateImageFromProvider(ProfileEntity profile) throws Exception;
 
     /**
      * Handle provider-specific exceptions and convert them to appropriate application exceptions.

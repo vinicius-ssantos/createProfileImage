@@ -7,6 +7,8 @@ import com.example.matchapp.exception.ApiRateLimitException;
 import com.example.matchapp.exception.ImageGenerationException;
 import com.example.matchapp.exception.InvalidResponseException;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.service.ImageGenerationService;
 import com.example.matchapp.service.PromptBuilderService;
 import com.example.matchapp.service.RateLimiterService;
@@ -96,12 +98,12 @@ public class OpenAIImageGenerationService extends AbstractImageGenerationService
      * Builds the request body for the OpenAI image generation API.
      * Exposed as a protected method to allow inspection in tests.
      * 
-     * @param profile the profile to generate an image for
+     * @param profileEntity the profile entity to generate an image for
      * @return the request body as a Map
      */
-    protected Map<String, Object> createRequest(Profile profile) {
+    protected Map<String, Object> createRequest(ProfileEntity profileEntity) {
         // Use the promptBuilder to generate a rich prompt based on all profile attributes
-        String prompt = promptBuilder.buildPrompt(profile);
+        String prompt = promptBuilder.buildPrompt(profileEntity);
         logger.debug("Generated prompt: {}", prompt);
 
         return Map.of(
@@ -124,7 +126,7 @@ public class OpenAIImageGenerationService extends AbstractImageGenerationService
     }
 
     @Override
-    protected byte[] generateImageFromProvider(Profile profile) throws Exception {
+    protected byte[] generateImageFromProvider(ProfileEntity profileEntity) throws Exception {
         // Acquire a permit from the rate limiter before making the API call
         logger.debug("Waiting for rate limiter permit");
         rateLimiter.acquire();
@@ -136,19 +138,19 @@ public class OpenAIImageGenerationService extends AbstractImageGenerationService
                 logger.info("Retry attempt {} for image generation", context.getRetryCount());
             }
 
-            return makeApiCall(profile);
+            return makeApiCall(profileEntity);
         });
     }
 
     /**
      * Makes the API call to OpenAI to generate an image.
      * 
-     * @param profile the profile to generate an image for
+     * @param profileEntity the profile entity to generate an image for
      * @return the generated image as a byte array
      * @throws Exception if the API call fails
      */
-    private byte[] makeApiCall(Profile profile) throws Exception {
-        Map<String, Object> request = createRequest(profile);
+    private byte[] makeApiCall(ProfileEntity profileEntity) throws Exception {
+        Map<String, Object> request = createRequest(profileEntity);
 
         try {
             // This call returns JSON with base64 image.

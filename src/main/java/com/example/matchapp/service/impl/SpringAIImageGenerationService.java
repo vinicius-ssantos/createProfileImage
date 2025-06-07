@@ -1,7 +1,7 @@
 package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
 import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
     }
 
     @Override
-    protected byte[] generateImageFromProvider(Profile profile) throws Exception {
+    protected byte[] generateImageFromProvider(ProfileEntity profile) throws Exception {
         // Acquire a permit from the rate limiter before making the API call
         rateLimiter.acquire();
 
@@ -105,8 +105,8 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
     // Keeping it for backward compatibility until all code is updated
     @Override
     @Deprecated
-    public byte[] generateImage(Profile profile) {
-        LoggingUtils.setProfileId(profile.id());
+    public byte[] generateImage(ProfileEntity profile) {
+        LoggingUtils.setProfileId(profile.getId());
         try {
             logger.info("Requesting image generation using Spring AI");
             rateLimiter.acquire();
