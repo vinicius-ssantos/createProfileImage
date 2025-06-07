@@ -6,9 +6,17 @@ import com.example.matchapp.model.ImageProvider;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
+import com.example.matchapp.service.PromptBuilderService;
+import com.example.matchapp.service.RateLimiterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.mock;
@@ -29,6 +37,11 @@ class ImageGenerationServiceFactoryTest {
 
     private ImageGenerationServiceFactory factory;
 
+    // Mock implementations for required services
+    private PromptBuilderService mockPromptBuilder;
+    private RateLimiterService mockRateLimiter;
+    private RetryTemplate retryTemplate;
+
     // Test implementation of OpenAIImageGenerationService that bypasses the API key check
     private static class TestOpenAIImageGenerationService extends OpenAIImageGenerationService {
         // Static method to create properties with a dummy API key
@@ -38,10 +51,10 @@ class ImageGenerationServiceFactoryTest {
             return props;
         }
 
-        // Use a constructor that calls super with pre-configured properties
-        public TestOpenAIImageGenerationService() {
-            // Call the parent constructor with pre-configured properties and null for other dependencies
-            super(createTestProperties(), null, null, null);
+        // Use a constructor that calls super with pre-configured properties and required services
+        public TestOpenAIImageGenerationService(PromptBuilderService promptBuilder, RetryTemplate retryTemplate, RateLimiterService rateLimiter) {
+            // Call the parent constructor with pre-configured properties and required services
+            super(createTestProperties(), promptBuilder, retryTemplate, rateLimiter);
         }
 
         // Override WebClient creation and other initialization that might cause issues
@@ -68,10 +81,10 @@ class ImageGenerationServiceFactoryTest {
             return props;
         }
 
-        // Use a constructor that calls super with pre-configured properties
-        public TestSpringAIImageGenerationService() {
-            // Call the parent constructor with pre-configured properties and null for other dependencies
-            super(createTestProperties(), null, null);
+        // Use a constructor that calls super with pre-configured properties and required services
+        public TestSpringAIImageGenerationService(PromptBuilderService promptBuilder, RateLimiterService rateLimiter) {
+            // Call the parent constructor with pre-configured properties and required services
+            super(createTestProperties(), promptBuilder, rateLimiter);
         }
 
         // Override methods that would normally make API calls
@@ -93,9 +106,28 @@ class ImageGenerationServiceFactoryTest {
         // Create a real properties object
         properties = new ImageGenProperties();
 
-        // Create test implementations instead of mocks
-        openAIService = new TestOpenAIImageGenerationService();
-        springAIService = new TestSpringAIImageGenerationService();
+        // Create mock implementations for required services
+        mockPromptBuilder = mock(PromptBuilderService.class);
+        mockRateLimiter = mock(RateLimiterService.class);
+
+        // Create a RetryTemplate for testing
+        retryTemplate = new RetryTemplate();
+        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(1000);
+        backOffPolicy.setMultiplier(2.0);
+        backOffPolicy.setMaxInterval(30000);
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+
+        Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
+        retryableExceptions.put(com.example.matchapp.exception.ApiConnectionException.class, true);
+        retryableExceptions.put(com.example.matchapp.exception.ApiRateLimitException.class, true);
+
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(3, retryableExceptions, true);
+        retryTemplate.setRetryPolicy(retryPolicy);
+
+        // Create test implementations with the mock services
+        openAIService = new TestOpenAIImageGenerationService(mockPromptBuilder, retryTemplate, mockRateLimiter);
+        springAIService = new TestSpringAIImageGenerationService(mockPromptBuilder, mockRateLimiter);
 
         // Create a real ApplicationContext mock using Mockito.mock() instead of @Mock
         applicationContext = mock(ApplicationContext.class);
@@ -110,11 +142,16 @@ class ImageGenerationServiceFactoryTest {
 
     @Test
     void getImageGenerationService_returnsOpenAIService_whenProviderIsOpenAI() {
-        // Arrange - set the provider directly on the real properties object
-        properties.setProvider(ImageProvider.OPENAI);
+        // Create a new properties object with the desired provider
+        ImageGenProperties testProps = new ImageGenProperties();
+        testProps.setApiKey("test-api-key");
+        testProps.setProvider(ImageProvider.OPENAI);
+
+        // Create a new factory with the test properties
+        ImageGenerationServiceFactory testFactory = new ImageGenerationServiceFactory(applicationContext, testProps);
 
         // Act
-        ImageGenerationService service = factory.getImageGenerationService();
+        ImageGenerationService service = testFactory.getImageGenerationService();
 
         // Assert
         assertInstanceOf(OpenAIImageGenerationService.class, service);
@@ -122,11 +159,16 @@ class ImageGenerationServiceFactoryTest {
 
     @Test
     void getImageGenerationService_returnsSpringAIService_whenProviderIsSpringAI() {
-        // Arrange - set the provider directly on the real properties object
-        properties.setProvider(ImageProvider.SPRING_AI);
+        // Create a new properties object with the desired provider
+        ImageGenProperties testProps = new ImageGenProperties();
+        testProps.setApiKey("test-api-key");
+        testProps.setProvider(ImageProvider.SPRING_AI);
+
+        // Create a new factory with the test properties
+        ImageGenerationServiceFactory testFactory = new ImageGenerationServiceFactory(applicationContext, testProps);
 
         // Act
-        ImageGenerationService service = factory.getImageGenerationService();
+        ImageGenerationService service = testFactory.getImageGenerationService();
 
         // Assert
         assertInstanceOf(SpringAIImageGenerationService.class, service);
@@ -134,11 +176,16 @@ class ImageGenerationServiceFactoryTest {
 
     @Test
     void getImageGenerationService_returnsMockImplementation_whenProviderIsMock() {
-        // Arrange - set the provider directly on the real properties object
-        properties.setProvider(ImageProvider.MOCK);
+        // Create a new properties object with the desired provider
+        ImageGenProperties testProps = new ImageGenProperties();
+        testProps.setApiKey("test-api-key");
+        testProps.setProvider(ImageProvider.MOCK);
+
+        // Create a new factory with the test properties
+        ImageGenerationServiceFactory testFactory = new ImageGenerationServiceFactory(applicationContext, testProps);
 
         // Act
-        ImageGenerationService service = factory.getImageGenerationService();
+        ImageGenerationService service = testFactory.getImageGenerationService();
 
         // Assert
         // The mock implementation is a lambda, so we can't easily check its type
@@ -149,11 +196,16 @@ class ImageGenerationServiceFactoryTest {
 
     @Test
     void getImageGenerationService_returnsOpenAIService_whenProviderIsUnknown() {
-        // Arrange - set the provider to null directly on the real properties object
-        properties.setProvider(null);
+        // Create a new properties object with the desired provider
+        ImageGenProperties testProps = new ImageGenProperties();
+        testProps.setApiKey("test-api-key");
+        testProps.setProvider(null);
+
+        // Create a new factory with the test properties
+        ImageGenerationServiceFactory testFactory = new ImageGenerationServiceFactory(applicationContext, testProps);
 
         // Act
-        ImageGenerationService service = factory.getImageGenerationService();
+        ImageGenerationService service = testFactory.getImageGenerationService();
 
         // Assert
         assertInstanceOf(OpenAIImageGenerationService.class, service);

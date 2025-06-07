@@ -6,6 +6,7 @@
     <property name="LOGSTASH_PORT" value="${LOGSTASH_PORT:-5044}" />
     <property name="APP_NAME" value="${APP_NAME:-create_ia_profiles}" />
     <property name="APP_ENV" value="${APP_ENV:-dev}" />
+    <property name="ENABLE_LOGSTASH" value="${ENABLE_LOGSTASH:-false}" />
 
     <!-- Common pattern for all logs -->
     <property name="COMMON_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{profileId}] [%X{requestId}] %-5level %logger{36} - %msg%n" />
@@ -104,7 +105,7 @@
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
             <appender-ref ref="ERROR_FILE" />
-            <appender-ref ref="ASYNC_LOGSTASH" />
+            <!-- Logstash appender is intentionally omitted for tests -->
         </root>
         <logger name="com.example.matchapp" level="INFO" />
         <logger name="org.springframework" level="WARN" />

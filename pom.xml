@@ -194,7 +194,6 @@
                 <version>3.3.0</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
@@ -322,13 +321,6 @@
                             <style>GOOGLE</style>
                         </googleJavaFormat>
                     </java>
-                    <xml>
-                        <includes>
-                            <include>pom.xml</include>
-                            <include>src/main/resources/**/*.xml</include>
-                            <include>src/test/resources/**/*.xml</include>
-                        </includes>
-                    </xml>
                 </configuration>
                 <executions>
                     <execution>

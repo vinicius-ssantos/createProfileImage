@@ -39,3 +39,4 @@ src/main/resources/static/images/*.json
 /src/main/resources/static/images/*.jpg
 *.log
 *.jpg
+/src/main/resources/static/images/*.png
