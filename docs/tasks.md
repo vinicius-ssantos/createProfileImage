@@ -1,9 +1,9 @@
 # Improvement Tasks for Profile Image Generator
 
 ## Architecture and Design
-[ ] 1. Implement proper error handling and retry mechanism for OpenAI API calls
+[x] 1. Implement proper error handling and retry mechanism for OpenAI API calls
 [ ] 2. Add rate limiting to prevent API quota exhaustion
-[ ] 3. Create a more robust prompt generation strategy using profile attributes
+[x] 3. Create a more robust prompt generation strategy using profile attributes
 [ ] 4. Implement caching mechanism to avoid regenerating existing images
 [ ] 5. Add support for different image generation providers (not just OpenAI)
 [ ] 6. Implement a proper domain model with separation from DTOs
