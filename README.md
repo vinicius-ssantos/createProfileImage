@@ -85,6 +85,23 @@ The API documentation is available at:
 - Swagger UI: http://localhost:8080/api/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/api/api-docs
 
+## Health Checks and Monitoring
+
+The application includes comprehensive health checks and monitoring capabilities:
+
+- Health checks for the application, profile repository, OpenAI API, and disk space
+- JVM metrics (memory, GC, threads, etc.)
+- Application-specific metrics for image generation and profile operations
+- Prometheus integration for metrics collection
+- Kubernetes-style health probes (liveness and readiness)
+
+Health and metrics endpoints are available through Spring Boot Actuator:
+- Basic health status: http://localhost:8080/api/actuator/health
+- Metrics: http://localhost:8080/api/actuator/metrics
+- Prometheus format: http://localhost:8080/api/actuator/prometheus
+
+For detailed information about health checks and monitoring, see the [Monitoring Guide](src/main/resources/static/monitoring-guide.md).
+
 ## API Endpoints
 
 ### Profiles
@@ -144,6 +161,50 @@ mvn test
 # Using Maven wrapper
 ./mvnw test  # Unix/Linux/macOS
 mvnw.cmd test  # Windows
+```
+
+## Infrastructure as Code
+
+This project includes Terraform configuration for deploying the application to AWS. The infrastructure code is located in the `terraform` directory.
+
+### Features
+
+- AWS ECS Fargate for running the containerized application
+- Application Load Balancer for routing traffic to the application
+- AWS Secrets Manager for securely storing the OpenAI API key
+- CloudWatch Logs for centralized logging
+- Auto Scaling based on CPU and memory utilization
+- IAM Roles and Policies for secure access to AWS resources
+
+### Prerequisites
+
+- [Terraform](https://www.terraform.io/downloads.html) v1.0.0 or newer
+- AWS CLI configured with appropriate credentials
+- An ECR repository for storing the application image
+- An ACM certificate for HTTPS
+
+### Usage
+
+See the [Terraform README](terraform/README.md) for detailed instructions on deploying the application to AWS.
+
+Quick start:
+
+```bash
+# Navigate to the terraform directory
+cd terraform
+
+# Initialize Terraform
+terraform init
+
+# Create a terraform.tfvars file (use terraform.tfvars.example as a template)
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your specific values
+
+# Plan the deployment
+terraform plan -out=tfplan
+
+# Apply the configuration
+terraform apply tfplan
 ```
 
 ## CI/CD Pipeline

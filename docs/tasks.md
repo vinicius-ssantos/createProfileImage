@@ -2,16 +2,16 @@
 
 ## Architecture and Design
 [x] 1. Implement proper error handling and retry mechanism for OpenAI API calls
-[ ] 2. Add rate limiting to prevent API quota exhaustion
+[x] 2. Add rate limiting to prevent API quota exhaustion
 [x] 3. Create a more robust prompt generation strategy using profile attributes
 [ ] 4. Implement caching mechanism to avoid regenerating existing images
-[ ] 5. Add support for different image generation providers (not just OpenAI)
+[x] 5. Add support for different image generation providers (not just OpenAI)
 [ ] 6. Implement a proper domain model with separation from DTOs
 [ ] 7. Create a configuration validator to ensure all required settings are present
 [ ] 8. Implement database persistence instead of in-memory storage
 [ ] 9. Add pagination support for listing profiles
 [ ] 10. Implement proper transaction management
-[ ] 11. Create environment-specific configuration profiles (dev, test, prod)
+[x] 11. Create environment-specific configuration profiles (dev, test, prod)
 
 ## Code Quality
 [ ] 12. Add comprehensive JavaDoc to all classes and methods
@@ -78,10 +78,10 @@
 [x] 63. Set up CI/CD pipeline for automated testing and deployment
 [x] 64. Create Docker configuration for containerized deployment
 [x] 65. Implement environment-specific configuration
-[ ] 66. Add health checks and monitoring
-[ ] 67. Create backup and restore procedures for generated images
+[x] 66. Add health checks and monitoring
+[x] 67. Create backup and restore procedures for generated images
 [ ] 68. Implement automated code quality checks
-[ ] 69. Add performance testing to CI/CD pipeline
-[ ] 70. Implement infrastructure as code
+[x] 69. Add performance testing to CI/CD pipeline
+[x] 70. Implement infrastructure as code
 [ ] 71. Set up centralized logging
-[ ] 72. Create deployment documentation
+[x] 72. Create deployment documentation
