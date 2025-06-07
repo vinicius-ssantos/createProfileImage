@@ -40,6 +40,7 @@ class SpringAIImageGenerationServiceIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(SpringAIImageGenerationServiceIntegrationTest.class);
 
     @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("imageGenProperties")
     private ImageGenProperties properties;
 
     @Autowired

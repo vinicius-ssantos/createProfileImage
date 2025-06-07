@@ -1,5 +1,6 @@
 package com.example.matchapp.service;
 
+import com.example.matchapp.config.BackupProperties;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.repository.ProfileRepository;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,18 @@ class ProfileServiceTest {
         Mockito.when(profileRepository.findById(Mockito.anyString())).thenReturn(java.util.Optional.of(testProfile));
         Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenAnswer(i -> i.getArgument(0));
 
-        ProfileService profileService = new ProfileService(imageGenerationService, profileRepository);
+        // Mock the image backup service
+        ImageBackupService imageBackupService = Mockito.mock(ImageBackupService.class);
+
+        // Mock the backup properties
+        BackupProperties backupProperties = Mockito.mock(BackupProperties.class);
+
+        // Create the profile service with all required dependencies
+        ProfileService profileService = new ProfileService(
+            imageGenerationService, 
+            profileRepository, 
+            imageBackupService, 
+            backupProperties);
 
         List<Profile> result = profileService.generateImages(tempDir);
 
