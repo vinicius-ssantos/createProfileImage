@@ -25,12 +25,10 @@ public class ProfileService {
 
     private final ImageGenerationService imageGenerationService;
     private final ProfileRepository profileRepository;
-    private final ObjectMapper objectMapper;
 
     public ProfileService(ImageGenerationService imageGenerationService, ProfileRepository profileRepository) {
         this.imageGenerationService = imageGenerationService;
         this.profileRepository = profileRepository;
-        this.objectMapper = new ObjectMapper();
     }
 
     /**
@@ -193,6 +191,13 @@ public class ProfileService {
             generateImageForProfile(profile.id(), imagesDir);
         }
 
-        return profileRepository.findAll();
+        // Get the updated profiles with image generation status
+        List<Profile> updatedProfiles = profileRepository.findAll();
+
+        // Write the updated profiles to a JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.writeValue(imagesDir.resolve("profiles_with_images.json").toFile(), updatedProfiles);
+
+        return updatedProfiles;
     }
 }

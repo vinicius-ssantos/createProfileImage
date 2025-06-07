@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 @Component
 public class EnvFileLoader {
     private static final Logger logger = LoggerFactory.getLogger(EnvFileLoader.class);
-    private static final String ENV_FILE_PATH = ".env";
+    private static final String ENV_FILE_NAME = ".env";
     private static final Pattern ENV_ENTRY_PATTERN = Pattern.compile("^\\s*([\\w.-]+)\\s*=\\s*(.*)\\s*$");
 
     @jakarta.annotation.PostConstruct
@@ -43,8 +43,9 @@ public class EnvFileLoader {
      * Checks if the .env file exists and creates it if it doesn't.
      */
     private void checkAndCreateEnvFile() {
-        File envFile = new File(ENV_FILE_PATH);
-        File envExampleFile = new File(".env.exemplo");
+        String userDir = System.getProperty("user.dir");
+        File envFile = new File(userDir, ENV_FILE_NAME);
+        File envExampleFile = new File(userDir, ".env.exemplo");
 
         if (!envFile.exists() && envExampleFile.exists()) {
             try {
@@ -96,41 +97,49 @@ public class EnvFileLoader {
      */
     private Map<String, String> readEnvFile() {
         Map<String, String> envVars = new HashMap<>();
-        File envFile = new File(ENV_FILE_PATH);
-        
+        String userDir = System.getProperty("user.dir");
+        File envFile = new File(userDir, ENV_FILE_NAME);
+
         if (envFile.exists()) {
             try {
                 String content = Files.readString(envFile.toPath());
                 String[] lines = content.split("\n");
-                
+
                 for (String line : lines) {
                     // Skip comments and empty lines
                     if (line.trim().isEmpty() || line.trim().startsWith("#")) {
                         continue;
                     }
-                    
+
                     Matcher matcher = ENV_ENTRY_PATTERN.matcher(line);
                     if (matcher.matches()) {
                         String key = matcher.group(1);
                         String value = matcher.group(2);
-                        
+
                         // Remove quotes if present
                         if (value.startsWith("\"") && value.endsWith("\"") || 
                             value.startsWith("'") && value.endsWith("'")) {
                             value = value.substring(1, value.length() - 1);
                         }
-                        
+
                         envVars.put(key, value);
-                        
+
                         // Set as system property so Spring can use it
                         System.setProperty(key, value);
+
+                        // Map OpenAI environment variables to Spring properties
+                        if (key.equals("OPENAI_API_KEY")) {
+                            System.setProperty("imagegen.api-key", value);
+                        } else if (key.equals("OPENAI_BASE_URL")) {
+                            System.setProperty("imagegen.base-url", value);
+                        }
                     }
                 }
             } catch (IOException e) {
                 logger.error("Failed to read .env file", e);
             }
         }
-        
+
         return envVars;
     }
 
