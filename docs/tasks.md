@@ -7,8 +7,8 @@
 [x] 4. Implement caching mechanism to avoid regenerating existing images
 [x] 5. Add support for different image generation providers (not just OpenAI)
 [x] 6. Implement a proper domain model with separation from DTOs
-[ ] 7. Create a configuration validator to ensure all required settings are present
-[ ] 8. Implement database persistence instead of in-memory storage
+[x] 7. Create a configuration validator to ensure all required settings are present
+[x] 8. Implement database persistence instead of in-memory storage
 [ ] 9. Add pagination support for listing profiles
 [ ] 10. Implement proper transaction management
 [x] 11. Create environment-specific configuration profiles (dev, test, prod)

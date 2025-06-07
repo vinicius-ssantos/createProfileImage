@@ -9,6 +9,9 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -56,6 +59,39 @@ public class InMemoryProfileRepository implements ProfileRepository {
     @Override
     public List<ProfileEntity> findAll() {
         return new ArrayList<>(profiles.values());
+    }
+
+    /**
+     * Find all profiles with pagination.
+     *
+     * @param pageable pagination information including page number, page size, and sorting
+     * @return a page of profiles
+     */
+    @Override
+    public Page<ProfileEntity> findAll(Pageable pageable) {
+        logger.debug("Finding profiles with pagination: page={}, size={}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        List<ProfileEntity> allProfiles = findAll();
+
+        // Apply sorting if specified
+        if (pageable.getSort().isSorted()) {
+            // This is a simplified implementation that doesn't handle complex sorting
+            // In a real application, you might want to implement a more robust sorting mechanism
+            logger.debug("Sorting is not fully implemented in the in-memory repository");
+        }
+
+        // Apply pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allProfiles.size());
+
+        // Handle case where start is beyond the size of the list
+        if (start >= allProfiles.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, allProfiles.size());
+        }
+
+        List<ProfileEntity> pageContent = allProfiles.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, allProfiles.size());
     }
 
     /**

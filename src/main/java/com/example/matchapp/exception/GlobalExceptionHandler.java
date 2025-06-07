@@ -108,6 +108,25 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handle ConfigurationException.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return the error response
+     */
+    @ExceptionHandler(ConfigurationException.class)
+    public ResponseEntity<ErrorResponse> handleConfigurationException(ConfigurationException ex, WebRequest request) {
+        logger.error("Configuration exception: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Configuration error",
+                Map.of("details", ex.getMessage()),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
         logger.error("Runtime exception: {}", ex.getMessage());

@@ -1,6 +1,8 @@
 package com.example.matchapp.repository;
 
 import com.example.matchapp.model.ProfileEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,14 @@ public interface ProfileRepository {
      * @return a list of all profiles
      */
     List<ProfileEntity> findAll();
+
+    /**
+     * Find all profiles with pagination.
+     *
+     * @param pageable pagination information including page number, page size, and sorting
+     * @return a page of profiles
+     */
+    Page<ProfileEntity> findAll(Pageable pageable);
 
     /**
      * Find a profile by its ID.

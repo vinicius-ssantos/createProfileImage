@@ -1,19 +1,51 @@
 package com.example.matchapp.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+
 /**
  * Domain entity representing a user profile with personal information and image generation status.
  * This class is the core domain model for profiles in the application.
+ * It is mapped to the database using JPA annotations.
  */
+@Entity
+@Table(name = "profiles")
 public class ProfileEntity {
+    @Id
     private String id;
+
+    @Column(name = "first_name", nullable = false)
     private String firstName;
+
+    @Column(name = "last_name", nullable = false)
     private String lastName;
+
+    @Column(nullable = false)
     private int age;
+
+    @Column(nullable = false)
     private String ethnicity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Gender gender;
+
+    @Lob
+    @Column(nullable = false)
     private String bio;
+
+    @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "personality_type", nullable = false)
     private String myersBriggsPersonalityType;
+
+    @Column(name = "image_generated", nullable = false)
     private boolean imageGenerated;
 
     /**
