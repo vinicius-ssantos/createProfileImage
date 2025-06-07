@@ -1,6 +1,6 @@
 package com.example.matchapp.service.impl;
 
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,15 +48,15 @@ public class DefaultPromptBuilderService implements PromptBuilderService {
     }
 
     @Override
-    public String buildPrompt(Profile profile) {
+    public String buildPrompt(ProfileEntity profile) {
         // Get personality traits based on Myers-Briggs type
         String personalityTraits = PERSONALITY_TRAITS.getOrDefault(
-                profile.myersBriggsPersonalityType(),
+                profile.getMyersBriggsPersonalityType(),
                 "with a natural and authentic expression"
         );
 
         // Convert gender to English for better OpenAI results
-        String genderTerm = genderToEnglish(profile.gender());
+        String genderTerm = genderToEnglish(profile.getGender());
 
         // Build a comprehensive prompt that includes all relevant profile attributes
         StringBuilder promptBuilder = new StringBuilder();
@@ -64,18 +64,18 @@ public class DefaultPromptBuilderService implements PromptBuilderService {
         // Main subject description
         promptBuilder.append(String.format(
                 "Create a realistic photographic portrait (1024×1024) of a %d-year-old %s %s, %s. ",
-                profile.age(),
-                profile.ethnicity(),
+                profile.getAge(),
+                profile.getEthnicity(),
                 genderTerm,
                 personalityTraits
         ));
 
         // Add name for context
-        promptBuilder.append(String.format("Their name is %s %s. ", profile.firstName(), profile.lastName()));
+        promptBuilder.append(String.format("Their name is %s %s. ", profile.getFirstName(), profile.getLastName()));
 
         // Include bio if available
-        if (profile.bio() != null && !profile.bio().isEmpty()) {
-            promptBuilder.append(String.format("Bio details: %s. ", profile.bio()));
+        if (profile.getBio() != null && !profile.getBio().isEmpty()) {
+            promptBuilder.append(String.format("Bio details: %s. ", profile.getBio()));
         }
 
         // Technical specifications
@@ -86,7 +86,7 @@ public class DefaultPromptBuilderService implements PromptBuilderService {
         promptBuilder.append("The image should be high resolution, photorealistic, with no watermarks or text.");
 
         String prompt = promptBuilder.toString();
-        logger.debug("Generated prompt for profile {}: {}", profile.id(), prompt);
+        logger.debug("Generated prompt for profile {}: {}", profile.getId(), prompt);
 
         return prompt;
     }
