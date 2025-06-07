@@ -81,6 +81,27 @@ Content-Type: {{contentType}}
   "myersBriggsPersonalityType": "ENFP"
 }
 
+### ===== Backup Management Endpoints =====
+
+### Create a backup of all images
+POST {{baseUrl}}/api/backups
+Accept: {{contentType}}
+
+### List all available backups
+GET {{baseUrl}}/api/backups
+Accept: {{contentType}}
+
+### Restore images from a backup
+# Optional parameters:
+# - backupName: The name of the backup to restore from (if not provided, restores from the latest backup)
+# - overwrite: Whether to overwrite existing files (default: false)
+POST {{baseUrl}}/api/backups/restore
+Content-Type: {{contentType}}
+
+### Restore images from a specific backup
+POST {{baseUrl}}/api/backups/restore?backupName=backup-20230615-120000&overwrite=true
+Content-Type: {{contentType}}
+
 ### ===== OpenAI Direct API Test =====
 
 ### Generate image using OpenAI API directly
