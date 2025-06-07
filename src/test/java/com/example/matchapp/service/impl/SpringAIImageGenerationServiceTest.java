@@ -107,8 +107,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -153,8 +153,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -181,8 +181,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -213,8 +213,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.example.matchapp.model.Gender;
 
 /**
  * DTO for creating a new profile.
@@ -23,8 +24,8 @@ public record CreateProfileRequest(
         @NotBlank(message = "Ethnicity is required")
         String ethnicity,
         
-        @NotBlank(message = "Gender is required")
-        String gender,
+        @NotNull(message = "Gender is required")
+        Gender gender,
         
         @NotBlank(message = "Bio is required")
         String bio,

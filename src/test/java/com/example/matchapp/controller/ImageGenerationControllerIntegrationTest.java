@@ -72,8 +72,8 @@ class ImageGenerationControllerIntegrationTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "A professional portrait photo of a smiling woman with long blonde hair", 
             "test-api.jpg", 
             "INTJ"

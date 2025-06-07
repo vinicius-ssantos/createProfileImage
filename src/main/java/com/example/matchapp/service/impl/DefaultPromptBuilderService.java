@@ -97,13 +97,13 @@ public class DefaultPromptBuilderService implements PromptBuilderService {
      * @param gender the gender string from the profile
      * @return the English term for the gender
      */
-    private String genderToEnglish(String gender) {
+    private String genderToEnglish(com.example.matchapp.model.Gender gender) {
         if (gender == null) {
             return "person";
         }
-        return switch (gender.toUpperCase()) {
-            case "MALE" -> "man";
-            case "FEMALE" -> "woman";
+        return switch (gender) {
+            case MALE -> "man";
+            case FEMALE -> "woman";
             default -> "person";
         };
     }

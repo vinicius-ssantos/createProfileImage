@@ -1,12 +1,13 @@
 package com.example.matchapp.model;
 
+
 public record Profile(
         String id,
         String firstName,
         String lastName,
         int age,
         String ethnicity,
-        String gender,
+        Gender gender,
         String bio,
         String imageUrl,
         String myersBriggsPersonalityType,
@@ -18,7 +19,7 @@ public record Profile(
             String lastName,
             int age,
             String ethnicity,
-            String gender,
+            Gender gender,
             String bio,
             String imageUrl,
             String myersBriggsPersonalityType

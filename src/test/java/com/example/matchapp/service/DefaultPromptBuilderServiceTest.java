@@ -19,7 +19,7 @@ class DefaultPromptBuilderServiceTest {
                 "Rodriguez",
                 26,
                 "Hispanic",
-                "FEMALE",
+                com.example.matchapp.model.Gender.FEMALE,
                 "Loves hiking and photography",
                 "img.jpg",
                 "ENFP"
@@ -53,7 +53,7 @@ class DefaultPromptBuilderServiceTest {
                 "Smith",
                 30,
                 "Caucasian",
-                "MALE",
+                com.example.matchapp.model.Gender.MALE,
                 null,
                 "img.jpg",
                 "INTJ"
@@ -80,7 +80,7 @@ class DefaultPromptBuilderServiceTest {
                 "Johnson",
                 25,
                 "Asian",
-                "MALE",
+                com.example.matchapp.model.Gender.MALE,
                 "Software developer",
                 "img.jpg",
                 "UNKNOWN"

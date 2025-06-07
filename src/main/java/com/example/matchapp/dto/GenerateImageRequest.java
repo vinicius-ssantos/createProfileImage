@@ -2,6 +2,7 @@ package com.example.matchapp.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.example.matchapp.model.Gender;
 
 /**
  * DTO for image generation requests.
@@ -22,7 +23,7 @@ public record GenerateImageRequest(
         
         String ethnicity,
         
-        String gender,
+        Gender gender,
         
         @NotBlank(message = "Bio is required for image generation")
         String bio,
@@ -41,7 +42,7 @@ public record GenerateImageRequest(
                 lastName,
                 age,
                 ethnicity != null ? ethnicity : "Not specified",
-                gender != null ? gender : "Not specified",
+                gender != null ? gender : Gender.OTHER,
                 bio,
                 id + ".jpg",
                 myersBriggsPersonalityType != null ? myersBriggsPersonalityType : "Not specified",

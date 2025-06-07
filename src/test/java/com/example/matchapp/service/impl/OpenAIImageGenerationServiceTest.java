@@ -77,7 +77,7 @@ class OpenAIImageGenerationServiceTest {
                 "Last",
                 30,
                 "Ethnicity",
-                "MALE",
+                com.example.matchapp.model.Gender.MALE,
                 "Sample bio",
                 "img.jpg",
                 "INTJ"
@@ -104,7 +104,7 @@ class OpenAIImageGenerationServiceTest {
                 "Doe",
                 28,
                 "Asian",
-                "FEMALE",
+                com.example.matchapp.model.Gender.FEMALE,
                 "Professional photographer",
                 "jane.jpg",
                 "ENFJ"
