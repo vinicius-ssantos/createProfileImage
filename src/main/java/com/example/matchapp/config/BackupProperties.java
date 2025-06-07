@@ -31,10 +31,20 @@ public class BackupProperties {
      */
     private boolean defaultOverwrite = false;
 
+    /**
+     * Gets the root directory for storing image backups.
+     *
+     * @return the backup directory path
+     */
     public String getBackupDir() {
         return backupDir;
     }
 
+    /**
+     * Sets the root directory for storing image backups.
+     *
+     * @param backupDir the backup directory path to set
+     */
     public void setBackupDir(String backupDir) {
         this.backupDir = backupDir;
     }
