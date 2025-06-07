@@ -2,17 +2,21 @@
 <configuration>
     <property name="LOG_PATH" value="${LOG_PATH:-./logs}" />
     <property name="LOG_ARCHIVE" value="${LOG_ARCHIVE:-${LOG_PATH}/archived}" />
-    
+    <property name="LOGSTASH_HOST" value="${LOGSTASH_HOST:-localhost}" />
+    <property name="LOGSTASH_PORT" value="${LOGSTASH_PORT:-5044}" />
+    <property name="APP_NAME" value="${APP_NAME:-create_ia_profiles}" />
+    <property name="APP_ENV" value="${APP_ENV:-dev}" />
+
     <!-- Common pattern for all logs -->
     <property name="COMMON_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{profileId}] [%X{requestId}] %-5level %logger{36} - %msg%n" />
-    
+
     <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${COMMON_PATTERN}</pattern>
         </encoder>
     </appender>
-    
+
     <!-- File Appender for all logs -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/application.log</file>
@@ -26,7 +30,7 @@
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
     </appender>
-    
+
     <!-- Error log file -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/error.log</file>
@@ -43,35 +47,79 @@
             <totalSizeCap>500MB</totalSizeCap>
         </rollingPolicy>
     </appender>
-    
+
+    <!-- Logstash Appender for centralized logging -->
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="LOGSTASH" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Add application metadata -->
+            <customFields>{"application":"${APP_NAME}","environment":"${APP_ENV}"}</customFields>
+            <!-- Include MDC values -->
+            <includeMdcKeyName>profileId</includeMdcKeyName>
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <!-- Add source information -->
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+            <includeCallerData>true</includeCallerData>
+        </encoder>
+        <!-- Reconnect if connection is lost -->
+        <reconnectionDelay>1 second</reconnectionDelay>
+        <!-- Connection timeout -->
+        <connectionTimeout>5000</connectionTimeout>
+        <!-- Keep connection alive -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <!-- Gracefully handle connection failures -->
+        <withConnectionStrategy>
+            <defaultConnectionStrategy>
+                <waitBeforeRetryingConnectionInMillis>1000</waitBeforeRetryingConnectionInMillis>
+                <maxWaitBeforeRetryingConnectionInMillis>30000</maxWaitBeforeRetryingConnectionInMillis>
+            </defaultConnectionStrategy>
+        </withConnectionStrategy>
+    </appender>
+
     <!-- Profile-specific Spring Boot configuration -->
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
             <appender-ref ref="ERROR_FILE" />
+            <appender-ref ref="ASYNC_LOGSTASH" />
         </root>
         <logger name="com.example.matchapp" level="DEBUG" />
         <logger name="org.springframework" level="INFO" />
+        <!-- Add logger for net.logstash to monitor centralized logging -->
+        <logger name="net.logstash.logback" level="INFO" />
     </springProfile>
-    
+
     <springProfile name="test">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
             <appender-ref ref="ERROR_FILE" />
+            <appender-ref ref="ASYNC_LOGSTASH" />
         </root>
         <logger name="com.example.matchapp" level="INFO" />
         <logger name="org.springframework" level="WARN" />
+        <logger name="net.logstash.logback" level="INFO" />
     </springProfile>
-    
+
     <springProfile name="prod">
         <root level="WARN">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
             <appender-ref ref="ERROR_FILE" />
+            <appender-ref ref="ASYNC_LOGSTASH" />
         </root>
         <logger name="com.example.matchapp" level="WARN" />
         <logger name="org.springframework" level="ERROR" />
+        <logger name="net.logstash.logback" level="WARN" />
     </springProfile>
 </configuration>

@@ -26,8 +26,20 @@ mvn pmd:check
 # Run just Checkstyle
 mvn checkstyle:check
 
+# Run just Spotless
+mvn spotless:check
+
 # Run just JaCoCo coverage report
 mvn jacoco:report
+
+# Run SonarQube analysis
+mvn verify sonar:sonar -Psonar
+```
+
+To automatically fix formatting issues with Spotless:
+
+```bash
+mvn spotless:apply
 ```
 
 ## Code Quality Tools
@@ -64,7 +76,7 @@ Common issues detected:
 
 [Checkstyle](https://checkstyle.org/) is a development tool to help programmers write Java code that adheres to a coding standard.
 
-- **Configuration**: `maven-checkstyle-plugin` in pom.xml using Google's Java Style Guide
+- **Configuration**: `maven-checkstyle-plugin` in pom.xml using a custom configuration file (`checkstyle.xml`)
 - **Reports**: Generated in `target/checkstyle-result.xml`
 
 Common issues detected:
@@ -72,6 +84,11 @@ Common issues detected:
 - Naming conventions
 - Javadoc problems
 - Code structure issues
+
+The custom Checkstyle configuration is based on Google's Java Style Guide but with some modifications:
+- 4-space indentation (instead of 2)
+- 120 character line length (instead of 100)
+- Custom Javadoc requirements
 
 ### 4. JaCoCo
 
@@ -91,6 +108,49 @@ The [Maven Enforcer Plugin](https://maven.apache.org/enforcer/maven-enforcer-plu
   - Java version matching project's java.version property
   - No duplicate dependencies
   - Dependency convergence (consistent versions)
+
+### 6. Spotless
+
+[Spotless](https://github.com/diffplug/spotless) is a code formatter that helps maintain consistent code style.
+
+- **Configuration**: `spotless-maven-plugin` in pom.xml
+- **Features**:
+  - Formats Java code using Google Java Format
+  - Organizes imports
+  - Removes unused imports
+  - Formats XML files
+
+To check for formatting issues:
+```bash
+mvn spotless:check
+```
+
+To automatically fix formatting issues:
+```bash
+mvn spotless:apply
+```
+
+### 7. SonarQube
+
+[SonarQube](https://www.sonarqube.org/) is a platform for continuous inspection of code quality.
+
+- **Configuration**: SonarQube profile in pom.xml
+- **Integration**: SonarCloud for cloud-based analysis
+- **Features**:
+  - Code quality analysis
+  - Security vulnerability detection
+  - Technical debt tracking
+  - Code coverage visualization
+  - Duplication detection
+
+To run a SonarQube analysis:
+```bash
+mvn verify sonar:sonar -Psonar
+```
+
+This requires the following environment variables:
+- `GITHUB_TOKEN` - GitHub access token
+- `SONAR_TOKEN` - SonarCloud access token
 
 ## Interpreting Results
 

@@ -29,16 +29,19 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final ImageBackupService imageBackupService;
     private final BackupProperties backupProperties;
+    private final ImageCacheService imageCacheService;
 
     public ProfileService(
             ImageGenerationService imageGenerationService, 
             ProfileRepository profileRepository,
             ImageBackupService imageBackupService,
-            BackupProperties backupProperties) {
+            BackupProperties backupProperties,
+            ImageCacheService imageCacheService) {
         this.imageGenerationService = imageGenerationService;
         this.profileRepository = profileRepository;
         this.imageBackupService = imageBackupService;
         this.backupProperties = backupProperties;
+        this.imageCacheService = imageCacheService;
     }
 
     /**
@@ -152,11 +155,23 @@ public class ProfileService {
                     // Create directories if they don't exist
                     Files.createDirectories(imagesDir);
 
-                    // Generate the image
-                    byte[] image = imageGenerationService.generateImage(profile);
+                    byte[] image;
 
-                    // Write the image to a file
-                    Files.write(imagesDir.resolve(profile.imageUrl()), image);
+                    // Check if image exists in cache
+                    if (imageCacheService.hasImageInCache(profile, imagesDir)) {
+                        logger.info("Using cached image for profile: {}", profile.id());
+                        Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(profile, imagesDir);
+                        if (cachedImage.isPresent()) {
+                            image = cachedImage.get();
+                        } else {
+                            // This should not happen if hasImageInCache returned true, but just in case
+                            logger.warn("Cache inconsistency detected for profile: {}", profile.id());
+                            image = generateAndCacheImage(profile, imagesDir);
+                        }
+                    } else {
+                        // Generate new image if not in cache
+                        image = generateAndCacheImage(profile, imagesDir);
+                    }
 
                     // Update the profile to mark the image as generated
                     Profile updatedProfile = new Profile(
@@ -180,6 +195,24 @@ public class ProfileService {
                     LoggingUtils.clearMDC();
                 }
             });
+    }
+
+    /**
+     * Generates an image for a profile and caches it.
+     *
+     * @param profile the profile to generate an image for
+     * @param imagesDir the directory to save the image to
+     * @return the generated image bytes
+     * @throws IOException if there's an error generating or caching the image
+     */
+    private byte[] generateAndCacheImage(Profile profile, Path imagesDir) throws IOException {
+        logger.info("Generating new image for profile: {}", profile.id());
+        byte[] image = imageGenerationService.generateImage(profile);
+
+        // Cache the image
+        imageCacheService.putImageInCache(profile, image, imagesDir);
+
+        return image;
     }
 
     /**

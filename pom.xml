@@ -75,6 +75,13 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Centralized Logging Dependencies -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
+
         <!-- Performance Testing Dependencies -->
         <dependency>
             <groupId>org.apache.jmeter</groupId>
@@ -175,7 +182,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <configLocation>google_checks.xml</configLocation>
+                    <configLocation>checkstyle.xml</configLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
@@ -284,6 +291,44 @@
                     </propertiesUser>
                 </configuration>
             </plugin>
+            <!-- Spotless for code formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.40.0</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <importOrder>
+                            <order>java,javax,org,com,io</order>
+                        </importOrder>
+                        <removeUnusedImports />
+                        <googleJavaFormat>
+                            <version>1.17.0</version>
+                            <style>GOOGLE</style>
+                        </googleJavaFormat>
+                    </java>
+                    <xml>
+                        <includes>
+                            <include>pom.xml</include>
+                            <include>src/main/resources/**/*.xml</include>
+                            <include>src/test/resources/**/*.xml</include>
+                        </includes>
+                    </xml>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -292,8 +337,11 @@
             <id>sonar</id>
             <properties>
                 <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-                <sonar.organization>your-organization</sonar.organization>
+                <sonar.organization>create-ia-profiles-org</sonar.organization>
                 <sonar.projectKey>create_ia_profiles</sonar.projectKey>
+                <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
+                <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+                <sonar.exclusions>**/test/**/*</sonar.exclusions>
             </properties>
         </profile>
     </profiles>

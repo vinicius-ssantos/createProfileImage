@@ -59,6 +59,12 @@ jobs:
     - name: Run PMD
       run: mvn pmd:check
 
+    - name: Run Checkstyle
+      run: mvn checkstyle:check
+
+    - name: Run Spotless
+      run: mvn spotless:check
+
     - name: SonarCloud Scan
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
       run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=create_ia_profiles
