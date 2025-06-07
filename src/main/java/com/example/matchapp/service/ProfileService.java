@@ -1,12 +1,13 @@
 package com.example.matchapp.service;
 
 import com.example.matchapp.config.BackupProperties;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.repository.ProfileRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import com.example.matchapp.util.LoggingUtils;
 
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing profiles and generating profile images.
@@ -51,7 +53,9 @@ public class ProfileService {
      */
     public List<Profile> getAllProfiles() {
         logger.info("Retrieving all profiles");
-        return profileRepository.findAll();
+        return profileRepository.findAll().stream()
+                .map(ProfileMapper::toProfile)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -62,7 +66,8 @@ public class ProfileService {
      */
     public Optional<Profile> getProfileById(String id) {
         logger.info("Retrieving profile with ID: {}", id);
-        return profileRepository.findById(id);
+        return profileRepository.findById(id)
+                .map(ProfileMapper::toProfile);
     }
 
     /**
@@ -77,22 +82,16 @@ public class ProfileService {
             ? UUID.randomUUID().toString() 
             : profile.id();
 
-        // Create a new profile with the generated ID and imageGenerated set to false
-        Profile newProfile = new Profile(
-            id,
-            profile.firstName(),
-            profile.lastName(),
-            profile.age(),
-            profile.ethnicity(),
-            profile.gender(),
-            profile.bio(),
-            profile.imageUrl(),
-            profile.myersBriggsPersonalityType(),
-            false
-        );
+        // Convert to entity
+        ProfileEntity entity = ProfileMapper.toProfileEntity(profile);
 
-        logger.info("Creating new profile with ID: {}", newProfile.id());
-        return profileRepository.save(newProfile);
+        // Set the ID and ensure imageGenerated is false
+        entity.setId(id);
+        entity.setImageGenerated(false);
+
+        logger.info("Creating new profile with ID: {}", entity.getId());
+        ProfileEntity savedEntity = profileRepository.save(entity);
+        return ProfileMapper.toProfile(savedEntity);
     }
 
     /**
@@ -106,22 +105,15 @@ public class ProfileService {
         logger.info("Updating profile with ID: {}", id);
 
         return profileRepository.findById(id)
-            .map(existingProfile -> {
-                // Create a new profile with the updated fields but keep the same ID
-                Profile updatedProfile = new Profile(
-                    id,
-                    profile.firstName(),
-                    profile.lastName(),
-                    profile.age(),
-                    profile.ethnicity(),
-                    profile.gender(),
-                    profile.bio(),
-                    profile.imageUrl(),
-                    profile.myersBriggsPersonalityType(),
-                    existingProfile.imageGenerated()
-                );
+            .map(existingEntity -> {
+                // Convert profile to entity and update fields
+                ProfileEntity updatedEntity = ProfileMapper.toProfileEntity(profile);
+                updatedEntity.setId(id);
+                updatedEntity.setImageGenerated(existingEntity.isImageGenerated());
 
-                return profileRepository.save(updatedProfile);
+                // Save the updated entity
+                ProfileEntity savedEntity = profileRepository.save(updatedEntity);
+                return ProfileMapper.toProfile(savedEntity);
             });
     }
 
@@ -150,7 +142,7 @@ public class ProfileService {
         return profileRepository.findById(id)
             .map(profile -> {
                 try {
-                    LoggingUtils.setProfileId(profile.id());
+                    LoggingUtils.setProfileId(profile.getId());
 
                     // Create directories if they don't exist
                     Files.createDirectories(imagesDir);
@@ -159,13 +151,13 @@ public class ProfileService {
 
                     // Check if image exists in cache
                     if (imageCacheService.hasImageInCache(profile, imagesDir)) {
-                        logger.info("Using cached image for profile: {}", profile.id());
+                        logger.info("Using cached image for profile: {}", profile.getId());
                         Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(profile, imagesDir);
                         if (cachedImage.isPresent()) {
                             image = cachedImage.get();
                         } else {
                             // This should not happen if hasImageInCache returned true, but just in case
-                            logger.warn("Cache inconsistency detected for profile: {}", profile.id());
+                            logger.warn("Cache inconsistency detected for profile: {}", profile.getId());
                             image = generateAndCacheImage(profile, imagesDir);
                         }
                     } else {
@@ -174,23 +166,12 @@ public class ProfileService {
                     }
 
                     // Update the profile to mark the image as generated
-                    Profile updatedProfile = new Profile(
-                        profile.id(),
-                        profile.firstName(),
-                        profile.lastName(),
-                        profile.age(),
-                        profile.ethnicity(),
-                        profile.gender(),
-                        profile.bio(),
-                        profile.imageUrl(),
-                        profile.myersBriggsPersonalityType(),
-                        true
-                    );
-
-                    return profileRepository.save(updatedProfile);
+                    profile.setImageGenerated(true);
+                    ProfileEntity updatedEntity = profileRepository.save(profile);
+                    return ProfileMapper.toProfile(updatedEntity);
                 } catch (IOException e) {
-                    logger.error("Error generating image for profile: {}", profile.id(), e);
-                    throw new RuntimeException("Failed to generate image for profile: " + profile.id(), e);
+                    logger.error("Error generating image for profile: {}", profile.getId(), e);
+                    throw new RuntimeException("Failed to generate image for profile: " + profile.getId(), e);
                 } finally {
                     LoggingUtils.clearMDC();
                 }
@@ -205,8 +186,9 @@ public class ProfileService {
      * @return the generated image bytes
      * @throws IOException if there's an error generating or caching the image
      */
-    private byte[] generateAndCacheImage(Profile profile, Path imagesDir) throws IOException {
-        logger.info("Generating new image for profile: {}", profile.id());
+    private byte[] generateAndCacheImage(ProfileEntity profile, Path imagesDir) throws IOException {
+        logger.info("Generating new image for profile: {}", profile.getId());
+
         byte[] image = imageGenerationService.generateImage(profile);
 
         // Cache the image
@@ -228,14 +210,20 @@ public class ProfileService {
         // Create directories if they don't exist
         Files.createDirectories(imagesDir);
 
-        List<Profile> profiles = profileRepository.findAll();
+        List<ProfileEntity> profileEntities = profileRepository.findAll();
+        List<Profile> profiles = profileEntities.stream()
+                .map(ProfileMapper::toProfile)
+                .collect(Collectors.toList());
 
         for (Profile profile : profiles) {
             generateImageForProfile(profile.id(), imagesDir);
         }
 
         // Get the updated profiles with image generation status
-        List<Profile> updatedProfiles = profileRepository.findAll();
+        List<ProfileEntity> updatedProfileEntities = profileRepository.findAll();
+        List<Profile> updatedProfiles = updatedProfileEntities.stream()
+                .map(ProfileMapper::toProfile)
+                .collect(Collectors.toList());
 
         // Write the updated profiles to a JSON file
         ObjectMapper objectMapper = new ObjectMapper();
