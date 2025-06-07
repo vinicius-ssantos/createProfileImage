@@ -1,7 +1,8 @@
 package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
+import com.example.matchapp.model.Gender;
 import com.example.matchapp.service.PromptBuilderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class SpringAIImageGenerationServiceTest {
 
     private static class StubPromptBuilderService implements PromptBuilderService {
-        private Profile lastProfile;
+        private ProfileEntity lastProfile;
         private final String prompt;
 
         StubPromptBuilderService(String prompt) {
@@ -26,12 +27,12 @@ class SpringAIImageGenerationServiceTest {
         }
 
         @Override
-        public String buildPrompt(Profile profile) {
+        public String buildPrompt(ProfileEntity profile) {
             this.lastProfile = profile;
             return prompt;
         }
 
-        public Profile getLastProfile() {
+        public ProfileEntity getLastProfile() {
             return lastProfile;
         }
     }
@@ -102,13 +103,13 @@ class SpringAIImageGenerationServiceTest {
     @Test
     void generateImage_returnsImageBytes() {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
             30, 
             "Test Ethnicity",
-            com.example.matchapp.model.Gender.MALE,
+            Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -148,13 +149,13 @@ class SpringAIImageGenerationServiceTest {
     @Test
     void generateImage_handlesNullResponse() {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
             30, 
             "Test Ethnicity",
-            com.example.matchapp.model.Gender.MALE,
+            Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -176,7 +177,7 @@ class SpringAIImageGenerationServiceTest {
     @Test
     void generateImage_handlesEmptyData() {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
@@ -208,7 +209,7 @@ class SpringAIImageGenerationServiceTest {
     @Test
     void generateImage_handlesAuthenticationError() {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
