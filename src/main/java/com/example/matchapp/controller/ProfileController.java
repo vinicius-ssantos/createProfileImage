@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * Provides endpoints for CRUD operations on profiles.
  */
 @RestController
-@RequestMapping("/api/profiles")
+@RequestMapping("/profiles")
 public class ProfileController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
