@@ -20,26 +20,66 @@ import org.springframework.context.annotation.Configuration;
 public class MetricsConfig {
 
     /**
-     * Configures JVM and system metrics to be collected.
+     * Creates JVM metrics binders.
+     * This approach avoids circular dependencies by not directly referencing the MeterRegistry.
      * 
-     * @param registry The meter registry
-     * @return The configured meter registry
+     * @return ClassLoaderMetrics instance
      */
     @Bean
-    public MeterRegistry configureMeterRegistry(MeterRegistry registry) {
-        // JVM metrics
-        new ClassLoaderMetrics().bindTo(registry);
-        new JvmMemoryMetrics().bindTo(registry);
-        new JvmGcMetrics().bindTo(registry);
-        new JvmThreadMetrics().bindTo(registry);
-        
-        // System metrics
-        new ProcessorMetrics().bindTo(registry);
-        new UptimeMetrics().bindTo(registry);
-        
-        return registry;
+    public ClassLoaderMetrics classLoaderMetrics() {
+        return new ClassLoaderMetrics();
     }
-    
+
+    /**
+     * Creates JVM memory metrics binder.
+     * 
+     * @return JvmMemoryMetrics instance
+     */
+    @Bean
+    public JvmMemoryMetrics jvmMemoryMetrics() {
+        return new JvmMemoryMetrics();
+    }
+
+    /**
+     * Creates JVM garbage collection metrics binder.
+     * 
+     * @return JvmGcMetrics instance
+     */
+    @Bean
+    public JvmGcMetrics jvmGcMetrics() {
+        return new JvmGcMetrics();
+    }
+
+    /**
+     * Creates JVM thread metrics binder.
+     * 
+     * @return JvmThreadMetrics instance
+     */
+    @Bean
+    public JvmThreadMetrics jvmThreadMetrics() {
+        return new JvmThreadMetrics();
+    }
+
+    /**
+     * Creates processor metrics binder.
+     * 
+     * @return ProcessorMetrics instance
+     */
+    @Bean
+    public ProcessorMetrics processorMetrics() {
+        return new ProcessorMetrics();
+    }
+
+    /**
+     * Creates uptime metrics binder.
+     * 
+     * @return UptimeMetrics instance
+     */
+    @Bean
+    public UptimeMetrics uptimeMetrics() {
+        return new UptimeMetrics();
+    }
+
     /**
      * Enables the @Timed annotation for method-level metrics.
      * This allows us to measure execution time of methods by adding the @Timed annotation.
@@ -51,14 +91,7 @@ public class MetricsConfig {
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
     }
-    
-    /**
-     * Creates a global meter registry that can be used throughout the application.
-     * 
-     * @return The global meter registry
-     */
-    @Bean
-    public MeterRegistry meterRegistry() {
-        return Metrics.globalRegistry;
-    }
+
+    // The MeterRegistry bean is automatically provided by Spring Boot's auto-configuration
+    // We don't need to explicitly define it here to avoid circular references
 }
