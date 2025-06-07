@@ -21,9 +21,18 @@ This project provides a RESTful API for managing user profiles and generating pr
 
 1. Create a `.env` file in the project root with the following variables:
    ```
+   # Environment Configuration
+   ENVIRONMENT=dev  # Options: dev, test, prod
+
+   # OpenAI API Configuration
    OPENAI_API_KEY=your_openai_api_key
    OPENAI_BASE_URL=https://api.openai.com/v1/images/generations
    ```
+
+2. The application supports three environments:
+   - `dev`: Development environment with verbose logging and development-specific settings
+   - `test`: Testing environment with minimal logging and test-specific settings
+   - `prod`: Production environment with minimal logging and production-specific settings
 
 ### Obtaining an OpenAI API Key
 
@@ -131,6 +140,116 @@ mvn test
 ./mvnw test  # Unix/Linux/macOS
 mvnw.cmd test  # Windows
 ```
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### CI Pipeline
+
+The CI pipeline runs on every push to the main/master branch and on pull requests. It performs the following steps:
+
+1. Builds the application
+2. Runs all tests
+3. Performs code quality checks (SpotBugs, PMD, SonarCloud)
+
+### CD Pipeline
+
+The CD pipeline runs when a new version tag (v*) is pushed or manually triggered. It performs the following steps:
+
+1. Builds the application
+2. Runs all tests
+3. Creates a deployable JAR artifact
+4. Builds and pushes a Docker image to GitHub Container Registry
+5. Deploys to staging environment
+6. Deploys to production environment (if manually selected or after staging)
+
+### Docker Containerization
+
+The application is containerized using Docker. The Docker image is built and pushed to GitHub Container Registry during the CD pipeline.
+
+To run the Docker image locally:
+
+```bash
+# Pull the image
+docker pull ghcr.io/your-username/create_ia_profiles:latest
+
+# Run the container
+docker run -d \
+  --name create-ia-profiles \
+  -p 8080:8080 \
+  -e ENVIRONMENT=prod \
+  -e OPENAI_API_KEY=your_openai_api_key \
+  -e OPENAI_BASE_URL=https://api.openai.com/v1/images/generations \
+  ghcr.io/your-username/create_ia_profiles:latest
+```
+
+Replace `your-username` with your GitHub username and `your_openai_api_key` with your OpenAI API key.
+
+### Setting Up GitHub Secrets
+
+To use the CI/CD pipeline, you need to set up the following secrets in your GitHub repository:
+
+1. `OPENAI_API_KEY`: Your OpenAI API key for running tests
+2. `SONAR_TOKEN`: Your SonarCloud token for code quality analysis (optional)
+
+To add these secrets:
+1. Go to your GitHub repository
+2. Click on "Settings" > "Secrets and variables" > "Actions"
+3. Click "New repository secret"
+4. Add each secret with its name and value
+
+### Environment Configuration
+
+#### Application Environments
+
+The application supports three environments: `dev`, `test`, and `prod`. Each environment has its own configuration settings defined in the corresponding `application-{env}.properties` file.
+
+To specify which environment to use:
+
+1. Set the `ENVIRONMENT` variable in your `.env` file:
+   ```
+   ENVIRONMENT=dev  # Options: dev, test, prod
+   ```
+
+2. Or set it as a system environment variable:
+   ```bash
+   # Linux/macOS
+   export ENVIRONMENT=prod
+
+   # Windows (Command Prompt)
+   set ENVIRONMENT=prod
+
+   # Windows (PowerShell)
+   $env:ENVIRONMENT = "prod"
+   ```
+
+3. Or pass it as a command-line argument when running the application:
+   ```bash
+   mvn spring-boot:run -Dspring.profiles.active=prod
+   ```
+
+#### Environment-Specific Settings
+
+Each environment has different settings optimized for its purpose:
+
+| Setting | Dev | Test | Prod |
+|---------|-----|------|------|
+| Logging Level | DEBUG | INFO | WARN |
+| OpenAI Model | dall-e-2 | dall-e-2 | dall-e-3 |
+| Image Size | 512x512 | 256x256 | 1024x1024 |
+| Error Details | Full | Partial | Minimal |
+| Swagger UI | Enabled | Enabled | Disabled |
+
+#### CI/CD Environments
+
+For deployment, the CD pipeline uses GitHub Environments for staging and production. To set these up:
+
+1. Go to your GitHub repository
+2. Click on "Settings" > "Environments"
+3. Create "staging" and "production" environments
+4. Add environment-specific secrets if needed
+5. Configure environment protection rules if desired (e.g., required reviewers)
 
 ## Example HTTP Request
 

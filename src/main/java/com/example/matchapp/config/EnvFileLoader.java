@@ -16,16 +16,56 @@ import java.util.regex.Pattern;
 /**
  * Loads environment variables from a .env file and sets them as system properties.
  * This is a replacement for the dotenv-java library.
+ * 
+ * This class also handles setting the active Spring profile based on the ENVIRONMENT variable.
  */
 @Component
 public class EnvFileLoader {
     private static final Logger logger = LoggerFactory.getLogger(EnvFileLoader.class);
     private static final String ENV_FILE_NAME = ".env";
     private static final Pattern ENV_ENTRY_PATTERN = Pattern.compile("^\\s*([\\w.-]+)\\s*=\\s*(.*)\\s*$");
+    private static final String DEFAULT_ENVIRONMENT = "dev";
+    private static final String[] VALID_ENVIRONMENTS = {"dev", "test", "prod"};
 
     @jakarta.annotation.PostConstruct
     public void init() {
-        loadEnvFile();
+        Map<String, String> envVars = loadEnvFile();
+        setActiveProfile(envVars);
+    }
+
+    /**
+     * Sets the active Spring profile based on the ENVIRONMENT variable.
+     * If the ENVIRONMENT variable is not set or is invalid, defaults to "dev".
+     * 
+     * @param envVars The map of environment variables
+     */
+    private void setActiveProfile(Map<String, String> envVars) {
+        String environment = envVars.getOrDefault("ENVIRONMENT", 
+                                                 System.getenv("ENVIRONMENT"));
+
+        if (environment == null || environment.trim().isEmpty()) {
+            environment = DEFAULT_ENVIRONMENT;
+            logger.info("No ENVIRONMENT variable found. Using default environment: {}", environment);
+        } else {
+            boolean isValid = false;
+            for (String validEnv : VALID_ENVIRONMENTS) {
+                if (validEnv.equalsIgnoreCase(environment)) {
+                    environment = validEnv; // Ensure correct case
+                    isValid = true;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                logger.warn("Invalid environment '{}' specified. Valid values are: {}. Using default: {}", 
+                           environment, String.join(", ", VALID_ENVIRONMENTS), DEFAULT_ENVIRONMENT);
+                environment = DEFAULT_ENVIRONMENT;
+            }
+        }
+
+        // Set the spring.profiles.active property
+        System.setProperty("spring.profiles.active", environment);
+        logger.info("Active Spring profile set to: {}", environment);
     }
 
     /**
@@ -60,6 +100,11 @@ public class EnvFileLoader {
                 logger.info("No .env file found. Creating a new one with instructions.");
                 // Create a .env file with detailed instructions
                 String envContent = 
+                    "# Environment Configuration\n" +
+                    "# -----------------------\n" +
+                    "# Set the environment to one of: dev, test, prod\n" +
+                    "# This determines which application-{profile}.properties file is used\n" +
+                    "ENVIRONMENT=dev\n\n" +
                     "# OpenAI API Configuration\n" +
                     "# -----------------------\n" +
                     "# Replace 'your_openai_key_here' with your actual OpenAI API key\n" +
