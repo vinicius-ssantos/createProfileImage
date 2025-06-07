@@ -12,32 +12,98 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "imagegen")
 public class ImageGenProperties {
-    // Provider selection
-    private ImageProvider provider = ImageProvider.OPENAI; // Default to OpenAI
+    /**
+     * The image generation provider to use.
+     * Defaults to OpenAI.
+     */
+    private ImageProvider provider = ImageProvider.OPENAI;
 
     // Common properties
+    /**
+     * API key for the image generation service.
+     * This should be set in the environment variables or application properties.
+     */
     private String apiKey;
+
+    /**
+     * Size of the generated images in pixels (width x height).
+     * Defaults to 1024x1024.
+     */
     private String imageSize = "1024x1024";
+
+    /**
+     * Maximum number of retry attempts for failed API calls.
+     * Defaults to 3.
+     */
     private int maxRetries = 3;
+
+    /**
+     * Delay between retry attempts in milliseconds.
+     * Defaults to 1000 (1 second).
+     */
     private int retryDelay = 1000;
+
+    /**
+     * Flag to use mock implementations for testing.
+     * Defaults to false.
+     */
     private boolean useMock = false;
 
     // OpenAI specific properties
+    /**
+     * Base URL for the OpenAI API.
+     * Defaults to the OpenAI image generations endpoint.
+     */
     private String baseUrl = "https://api.openai.com/v1/images/generations";
+
+    /**
+     * OpenAI model to use for image generation.
+     * Defaults to "dall-e-2".
+     */
     private String model = "dall-e-2";
 
     // Spring AI specific properties
+    /**
+     * Base URL for the Spring AI API.
+     * Defaults to the OpenAI image generations endpoint.
+     */
     private String springAiBaseUrl = "https://api.openai.com/v1/images/generations";
+
+    /**
+     * Spring AI model to use for image generation.
+     * Defaults to "dall-e-2".
+     */
     private String springAiModel = "dall-e-2";
 
     // Rate limiting properties
-    private int requestsPerMinute = 20; // Default: 20 requests per minute
-    private int burstCapacity = 5; // Default: 5 concurrent requests
+    /**
+     * Maximum number of requests allowed per minute.
+     * Used for rate limiting to prevent API quota exhaustion.
+     * Defaults to 20 requests per minute.
+     */
+    private int requestsPerMinute = 20;
 
+    /**
+     * Maximum number of concurrent requests allowed.
+     * Used for rate limiting to prevent API quota exhaustion.
+     * Defaults to 5 concurrent requests.
+     */
+    private int burstCapacity = 5;
+
+    /**
+     * Gets the API key for the image generation service.
+     *
+     * @return the API key
+     */
     public String getApiKey() {
         return apiKey;
     }
 
+    /**
+     * Sets the API key for the image generation service.
+     *
+     * @param apiKey the API key to set
+     */
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }

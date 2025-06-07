@@ -2,6 +2,8 @@ package com.example.matchapp.controller;
 
 import com.example.matchapp.dto.GenerateImageRequest;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.service.ImageGenerationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -62,7 +64,10 @@ public class ImageGenerationController {
             // Convert DTO to domain model
             Profile profile = request.toProfile();
 
-            byte[] imageBytes = imageGenerationService.generateImage(profile);
+            // Convert Profile to ProfileEntity
+            ProfileEntity profileEntity = ProfileMapper.toProfileEntity(profile);
+
+            byte[] imageBytes = imageGenerationService.generateImage(profileEntity);
             logger.info("Successfully generated image for profile: {}", profile.id());
             return ResponseEntity.ok(imageBytes);
         } catch (Exception e) {
