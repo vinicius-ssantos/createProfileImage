@@ -37,6 +37,11 @@ public class ProfileController {
     private final ProfileService profileService;
 
     public ProfileController(ProfileService profileService) {
+        // Validate parameters before assigning to fields
+        if (profileService == null) {
+            throw new NullPointerException("ProfileService cannot be null");
+        }
+        // ProfileService is an interface/service, not a mutable object that needs defensive copying
         this.profileService = profileService;
     }
 

@@ -2,7 +2,6 @@ package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.ProfileEntity;
-import com.example.matchapp.service.ImageGenerationService;
 import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +48,7 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
     }
 
     @Override
-    protected byte[] generateImageFromProvider(ProfileEntity profile) throws Exception {
+    protected byte[] generateImageFromProvider(ProfileEntity profile) {
         // Acquire a permit from the rate limiter before making the API call
         logger.debug("Waiting for rate limiter permit");
         rateLimiter.acquire();
@@ -108,9 +107,7 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
     @Override
     protected RuntimeException handleProviderException(Exception exception) {
         // Use the same exception types as OpenAIImageGenerationService for consistency
-        if (exception instanceof com.example.matchapp.exception.ApiAuthenticationException || 
-            exception instanceof com.example.matchapp.exception.InvalidResponseException || 
-            exception instanceof com.example.matchapp.exception.ImageGenerationException) {
+        if (exception instanceof com.example.matchapp.exception.ImageGenerationException) {
             // Just log and rethrow our custom exceptions
             logger.error("Error in Spring AI image generation: {}", exception.getMessage(), exception);
             return (RuntimeException) exception;
@@ -212,12 +209,12 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
      * Makes an API call to the OpenAI API.
      * This method is protected to allow overriding in tests.
      *
-     * @param url The URL to call
+     * @param url         The URL to call
      * @param requestBody The request body
-     * @param headers The HTTP headers
+     * @param headers     The HTTP headers
      * @return The response from the API
      */
-    protected Map<String, Object> makeApiCall(String url, Map<String, Object> requestBody, HttpHeaders headers) {
+    protected Map makeApiCall(String url, Map<String, Object> requestBody, HttpHeaders headers) {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
         return restTemplate.postForObject(url, requestEntity, Map.class);
     }

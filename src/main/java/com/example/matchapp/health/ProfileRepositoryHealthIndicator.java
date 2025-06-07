@@ -14,19 +14,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProfileRepositoryHealthIndicator implements HealthIndicator {
     private static final Logger logger = LoggerFactory.getLogger(ProfileRepositoryHealthIndicator.class);
-    
+
     private final ProfileRepository profileRepository;
-    
+
     public ProfileRepositoryHealthIndicator(ProfileRepository profileRepository) {
+        // Validate parameters before assigning to fields
+        if (profileRepository == null) {
+            throw new NullPointerException("ProfileRepository cannot be null");
+        }
+        // ProfileRepository is an interface/service, not a mutable object that needs defensive copying
         this.profileRepository = profileRepository;
     }
-    
+
     @Override
     public Health health() {
         try {
             // Check if the repository is accessible and contains profiles
             int profileCount = profileRepository.findAll().size();
-            
+
             if (profileCount > 0) {
                 return Health.up()
                         .withDetail("profileCount", profileCount)

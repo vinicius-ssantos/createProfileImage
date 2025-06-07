@@ -32,8 +32,53 @@ public class ConfigurationValidator {
      */
     @Autowired
     public ConfigurationValidator(ImageGenProperties imageGenProperties, BackupProperties backupProperties) {
-        this.imageGenProperties = imageGenProperties;
-        this.backupProperties = backupProperties;
+        // Create defensive copies to prevent external modification
+        this.imageGenProperties = copyImageGenProperties(imageGenProperties);
+        this.backupProperties = copyBackupProperties(backupProperties);
+    }
+
+    /**
+     * Creates a defensive copy of ImageGenProperties.
+     *
+     * @param original the original ImageGenProperties object
+     * @return a new ImageGenProperties object with the same properties
+     */
+    private ImageGenProperties copyImageGenProperties(ImageGenProperties original) {
+        if (original == null) {
+            return null;
+        }
+        ImageGenProperties copy = new ImageGenProperties();
+        copy.setApiKey(original.getApiKey());
+        copy.setBaseUrl(original.getBaseUrl());
+        copy.setModel(original.getModel());
+        copy.setImageSize(original.getImageSize());
+        copy.setMaxRetries(original.getMaxRetries());
+        copy.setRetryDelay(original.getRetryDelay());
+        copy.setUseMock(original.isUseMock());
+        copy.setRequestsPerMinute(original.getRequestsPerMinute());
+        copy.setBurstCapacity(original.getBurstCapacity());
+        copy.setProvider(original.getProvider());
+        copy.setSpringAiBaseUrl(original.getSpringAiBaseUrl());
+        copy.setSpringAiModel(original.getSpringAiModel());
+        return copy;
+    }
+
+    /**
+     * Creates a defensive copy of BackupProperties.
+     *
+     * @param original the original BackupProperties object
+     * @return a new BackupProperties object with the same properties
+     */
+    private BackupProperties copyBackupProperties(BackupProperties original) {
+        if (original == null) {
+            return null;
+        }
+        BackupProperties copy = new BackupProperties();
+        copy.setBackupDir(original.getBackupDir());
+        copy.setAutoBackup(original.isAutoBackup());
+        copy.setMaxBackups(original.getMaxBackups());
+        copy.setDefaultOverwrite(original.isDefaultOverwrite());
+        return copy;
     }
 
     /**
@@ -43,10 +88,10 @@ public class ConfigurationValidator {
     @EventListener(ApplicationReadyEvent.class)
     public void validateConfiguration() {
         logger.info("Validating application configuration...");
-        
+
         validateImageGenProperties();
         validateBackupProperties();
-        
+
         logger.info("Configuration validation completed successfully");
     }
 

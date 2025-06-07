@@ -36,7 +36,26 @@ public class BackupController {
 
     public BackupController(ImageBackupService backupService, BackupProperties backupProperties) {
         this.backupService = backupService;
-        this.backupProperties = backupProperties;
+        // Create defensive copy to prevent external modification
+        this.backupProperties = copyBackupProperties(backupProperties);
+    }
+
+    /**
+     * Creates a defensive copy of BackupProperties.
+     *
+     * @param original the original BackupProperties object
+     * @return a new BackupProperties object with the same properties
+     */
+    private BackupProperties copyBackupProperties(BackupProperties original) {
+        if (original == null) {
+            return null;
+        }
+        BackupProperties copy = new BackupProperties();
+        copy.setBackupDir(original.getBackupDir());
+        copy.setAutoBackup(original.isAutoBackup());
+        copy.setMaxBackups(original.getMaxBackups());
+        copy.setDefaultOverwrite(original.isDefaultOverwrite());
+        return copy;
     }
 
     /**

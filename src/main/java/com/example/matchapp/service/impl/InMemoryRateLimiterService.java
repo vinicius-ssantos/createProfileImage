@@ -19,7 +19,7 @@ public class InMemoryRateLimiterService implements RateLimiterService {
     private static final Logger logger = LoggerFactory.getLogger(InMemoryRateLimiterService.class);
 
     private final int maxRequests;
-    private final long intervalMillis = 60_000L;
+    private static final long intervalMillis = 60_000L;
     private final AtomicInteger requestCount = new AtomicInteger(0);
     private volatile long intervalStart = Instant.now().toEpochMilli();
 

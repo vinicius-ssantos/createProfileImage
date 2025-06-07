@@ -29,12 +29,39 @@ public class OpenAIHealthIndicator implements HealthIndicator {
     private final ImageGenProperties properties;
 
     public OpenAIHealthIndicator(@org.springframework.beans.factory.annotation.Qualifier("imageGenProperties") ImageGenProperties properties) {
-        this.properties = properties;
+        // Create defensive copy to prevent external modification
+        this.properties = copyImageGenProperties(properties);
         this.webClient = WebClient.builder()
-                .baseUrl(properties.getBaseUrl())
+                .baseUrl(this.properties.getBaseUrl())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getApiKey())
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + this.properties.getApiKey())
                 .build();
+    }
+
+    /**
+     * Creates a defensive copy of ImageGenProperties.
+     *
+     * @param original the original ImageGenProperties object
+     * @return a new ImageGenProperties object with the same properties
+     */
+    private ImageGenProperties copyImageGenProperties(ImageGenProperties original) {
+        if (original == null) {
+            return null;
+        }
+        ImageGenProperties copy = new ImageGenProperties();
+        copy.setApiKey(original.getApiKey());
+        copy.setBaseUrl(original.getBaseUrl());
+        copy.setModel(original.getModel());
+        copy.setImageSize(original.getImageSize());
+        copy.setMaxRetries(original.getMaxRetries());
+        copy.setRetryDelay(original.getRetryDelay());
+        copy.setUseMock(original.isUseMock());
+        copy.setRequestsPerMinute(original.getRequestsPerMinute());
+        copy.setBurstCapacity(original.getBurstCapacity());
+        copy.setProvider(original.getProvider());
+        copy.setSpringAiBaseUrl(original.getSpringAiBaseUrl());
+        copy.setSpringAiModel(original.getSpringAiModel());
+        return copy;
     }
 
     @Override

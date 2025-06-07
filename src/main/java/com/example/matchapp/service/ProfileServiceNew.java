@@ -43,11 +43,62 @@ public class ProfileServiceNew {
             ImageBackupService imageBackupService,
             BackupProperties backupProperties,
             ImageCacheService imageCacheService) {
+        // Validate all parameters before assigning to fields
+        validateConstructorParameters(imageGenerationService, profileRepository, 
+                                     imageBackupService, backupProperties, imageCacheService);
+
+        // These are interfaces/services, not mutable objects that need defensive copying
         this.imageGenerationService = imageGenerationService;
         this.profileRepository = profileRepository;
         this.imageBackupService = imageBackupService;
-        this.backupProperties = backupProperties;
+
+        // Create defensive copy to prevent external modification
+        this.backupProperties = copyBackupProperties(backupProperties);
+
+        // This is an interface/service, not a mutable object that needs defensive copying
         this.imageCacheService = imageCacheService;
+    }
+
+    /**
+     * Validates that all constructor parameters are non-null.
+     * Centralizing validation helps avoid partial initialization issues.
+     */
+    private void validateConstructorParameters(
+            ImageGenerationService imageGenerationService,
+            ProfileRepository profileRepository,
+            ImageBackupService imageBackupService,
+            BackupProperties backupProperties,
+            ImageCacheService imageCacheService) {
+        if (imageGenerationService == null) {
+            throw new NullPointerException("ImageGenerationService cannot be null");
+        }
+        if (profileRepository == null) {
+            throw new NullPointerException("ProfileRepository cannot be null");
+        }
+        if (imageBackupService == null) {
+            throw new NullPointerException("ImageBackupService cannot be null");
+        }
+        if (backupProperties == null) {
+            throw new NullPointerException("BackupProperties cannot be null");
+        }
+        if (imageCacheService == null) {
+            throw new NullPointerException("ImageCacheService cannot be null");
+        }
+    }
+
+    /**
+     * Creates a defensive copy of BackupProperties.
+     *
+     * @param original the original BackupProperties object
+     * @return a new BackupProperties object with the same properties
+     */
+    private BackupProperties copyBackupProperties(BackupProperties original) {
+        BackupProperties copy = new BackupProperties();
+        copy.setBackupDir(original.getBackupDir());
+        copy.setAutoBackup(original.isAutoBackup());
+        copy.setMaxBackups(original.getMaxBackups());
+        copy.setDefaultOverwrite(original.isDefaultOverwrite());
+        return copy;
     }
 
     /**

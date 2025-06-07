@@ -13,6 +13,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,14 +25,33 @@ import java.util.stream.Collectors;
 public class FileSystemImageBackupService implements ImageBackupService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileSystemImageBackupService.class);
-    private static final DateTimeFormatter BACKUP_FOLDER_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    private static final DateTimeFormatter BACKUP_FOLDER_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final String PROFILES_JSON_FILENAME = "profiles_with_images.json";
 
     private final BackupProperties backupProperties;
 
     @Autowired
     public FileSystemImageBackupService(BackupProperties backupProperties) {
-        this.backupProperties = backupProperties;
+        if (backupProperties == null) {
+            throw new NullPointerException("BackupProperties cannot be null");
+        }
+        // Create defensive copy to prevent external modification
+        this.backupProperties = copyBackupProperties(backupProperties);
+    }
+
+    /**
+     * Creates a defensive copy of BackupProperties.
+     *
+     * @param original the original BackupProperties object
+     * @return a new BackupProperties object with the same properties
+     */
+    private BackupProperties copyBackupProperties(BackupProperties original) {
+        BackupProperties copy = new BackupProperties();
+        copy.setBackupDir(original.getBackupDir());
+        copy.setAutoBackup(original.isAutoBackup());
+        copy.setMaxBackups(original.getMaxBackups());
+        copy.setDefaultOverwrite(original.isDefaultOverwrite());
+        return copy;
     }
 
     /**
@@ -76,7 +96,10 @@ public class FileSystemImageBackupService implements ImageBackupService {
                 Path targetPath = backupFolderPath.resolve(relativePath);
 
                 // Create parent directories if they don't exist
-                Files.createDirectories(targetPath.getParent());
+                Path parent = targetPath.getParent();
+                if (parent != null) {
+                    Files.createDirectories(parent);
+                }
 
                 // Copy the file
                 Files.copy(file, targetPath, StandardCopyOption.REPLACE_EXISTING);
@@ -118,7 +141,10 @@ public class FileSystemImageBackupService implements ImageBackupService {
                 Path targetPath = targetDir.resolve(relativePath);
 
                 // Create parent directories if they don't exist
-                Files.createDirectories(targetPath.getParent());
+                Path parent = targetPath.getParent();
+                if (parent != null) {
+                    Files.createDirectories(parent);
+                }
 
                 // Check if file exists and if we should overwrite
                 if (!Files.exists(targetPath) || overwrite) {
@@ -196,7 +222,11 @@ public class FileSystemImageBackupService implements ImageBackupService {
         // Find the most recent backup (assuming timestamp-based folder names)
         Path latestBackup = backups[backups.length - 1];
         for (Path backup : backups) {
-            if (backup.getFileName().toString().compareTo(latestBackup.getFileName().toString()) > 0) {
+            Path backupFileName = backup.getFileName();
+            Path latestBackupFileName = latestBackup.getFileName();
+
+            if (backupFileName != null && latestBackupFileName != null && 
+                backupFileName.toString().compareTo(latestBackupFileName.toString()) > 0) {
                 latestBackup = backup;
             }
         }
@@ -222,10 +252,8 @@ public class FileSystemImageBackupService implements ImageBackupService {
         }
 
         // Sort backups by name (which should be timestamp-based)
-        List<Path> backupsList = List.of(backups);
-        List<Path> sortedBackups = backupsList.stream()
-                .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-                .collect(Collectors.toList());
+        List<Path> backupsList = new ArrayList<>(Arrays.asList(backups));
+        backupsList.sort(Comparator.comparing(p -> p.getFileName().toString()));
 
         // Calculate how many backups to delete
         int backupsToDelete = backups.length - maxBackups;
@@ -233,7 +261,7 @@ public class FileSystemImageBackupService implements ImageBackupService {
 
         // Delete the oldest backups
         for (int i = 0; i < backupsToDelete; i++) {
-            Path backupToDelete = sortedBackups.get(i);
+            Path backupToDelete = backupsList.get(i);
             deleteDirectory(backupToDelete);
             logger.info("Deleted old backup: {}", backupToDelete);
         }

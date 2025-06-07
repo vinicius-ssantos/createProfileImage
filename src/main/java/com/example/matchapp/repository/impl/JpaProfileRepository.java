@@ -100,13 +100,4 @@ public class JpaProfileRepository implements ProfileRepository {
         return false;
     }
 
-    /**
-     * Spring Data JPA repository interface for ProfileEntity.
-     * This interface is used internally by JpaProfileRepository.
-     */
-    @Repository
-    interface ProfileJpaRepository extends JpaRepository<ProfileEntity, String> {
-        // Spring Data JPA will provide implementations for common methods
-        // Custom query methods can be added here if needed
-    }
 }

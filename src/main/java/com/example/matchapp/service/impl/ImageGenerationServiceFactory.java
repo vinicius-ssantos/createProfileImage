@@ -26,8 +26,31 @@ public class ImageGenerationServiceFactory {
     public ImageGenerationServiceFactory(
             ApplicationContext applicationContext,
             @Qualifier("imageGenProperties") ImageGenProperties properties) {
+        if (applicationContext == null) {
+            throw new NullPointerException("ApplicationContext cannot be null");
+        }
+        if (properties == null) {
+            throw new NullPointerException("ImageGenProperties cannot be null");
+        }
         this.applicationContext = applicationContext;
-        this.properties = properties;
+        // Create defensive copy to prevent external modification
+        this.properties = copyImageGenProperties(properties);
+    }
+
+    /**
+     * Creates a defensive copy of ImageGenProperties.
+     *
+     * @param original the original ImageGenProperties object
+     * @return a new ImageGenProperties object with the same properties
+     */
+    private ImageGenProperties copyImageGenProperties(ImageGenProperties original) {
+        ImageGenProperties copy = new ImageGenProperties();
+        copy.setApiKey(original.getApiKey());
+        copy.setBaseUrl(original.getBaseUrl());
+        copy.setProvider(original.getProvider());
+        copy.setMaxRetries(original.getMaxRetries());
+        copy.setRetryDelay(original.getRetryDelay());
+        return copy;
     }
 
     /**
