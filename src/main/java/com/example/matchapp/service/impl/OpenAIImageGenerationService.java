@@ -20,12 +20,17 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.ResponseCookie;
 import reactor.core.publisher.Mono;
 
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -37,6 +42,7 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
     private final String apiKey;
     private final PromptBuilderService promptBuilder;
     private final RetryTemplate retryTemplate;
+    private final Map<String, String> cookies = new HashMap<>();
 
     public OpenAIImageGenerationService(
             ImageGenProperties properties, 
@@ -51,9 +57,36 @@ public class OpenAIImageGenerationService implements ImageGenerationService {
             throw new IllegalStateException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
         }
 
+        // Create cookie handling filter
+        ExchangeFilterFunction cookieFilter = (request, next) -> {
+            // Add cookies to request if available
+            if (!cookies.isEmpty()) {
+                request = ClientRequest.from(request)
+                    .cookies(cookieMap -> {
+                        cookies.forEach((name, value) -> cookieMap.add(name, value));
+                    })
+                    .build();
+                logger.debug("Added cookies to request: {}", cookies);
+            }
+
+            // Process response and extract cookies
+            return next.exchange(request)
+                .doOnSuccess(response -> {
+                    response.cookies().forEach((name, responseCookies) -> {
+                        if (!responseCookies.isEmpty()) {
+                            ResponseCookie cookie = responseCookies.get(0);
+                            cookies.put(name, cookie.getValue());
+                            logger.debug("Saved cookie: {}={}", name, cookie.getValue());
+                        }
+                    });
+                });
+        };
+
         this.webClient = WebClient.builder()
                 .baseUrl(properties.getBaseUrl())
                 .defaultHeader("Authorization", "Bearer " + apiKey)
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)) // 16MB buffer for large responses
+                .filter(cookieFilter)
                 .build();
     }
 
