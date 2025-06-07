@@ -16,6 +16,10 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Implementation of RateLimiter using a token bucket algorithm.
  * This implementation limits the rate of operations to prevent API quota exhaustion.
+ * 
+ * NOTE: This class is currently not used in the application but is kept for future use
+ * when more sophisticated rate limiting is needed. The current implementation uses
+ * {@link InMemoryRateLimiterService} instead.
  */
 @Service
 public class TokenBucketRateLimiter implements RateLimiter {
