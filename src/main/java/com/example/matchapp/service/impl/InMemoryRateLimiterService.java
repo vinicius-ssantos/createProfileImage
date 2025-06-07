@@ -23,7 +23,7 @@ public class InMemoryRateLimiterService implements RateLimiterService {
     private final AtomicInteger requestCount = new AtomicInteger(0);
     private volatile long intervalStart = Instant.now().toEpochMilli();
 
-    public InMemoryRateLimiterService(ImageGenProperties properties) {
+    public InMemoryRateLimiterService(@org.springframework.beans.factory.annotation.Qualifier("imageGenProperties") ImageGenProperties properties) {
         this.maxRequests = properties.getRequestsPerMinute();
     }
 
