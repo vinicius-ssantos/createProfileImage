@@ -1,5 +1,6 @@
 package com.example.matchapp.service;
 
+import com.example.matchapp.config.BackupProperties;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.repository.ProfileRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import com.example.matchapp.util.LoggingUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,10 +27,18 @@ public class ProfileService {
 
     private final ImageGenerationService imageGenerationService;
     private final ProfileRepository profileRepository;
+    private final ImageBackupService imageBackupService;
+    private final BackupProperties backupProperties;
 
-    public ProfileService(ImageGenerationService imageGenerationService, ProfileRepository profileRepository) {
+    public ProfileService(
+            ImageGenerationService imageGenerationService, 
+            ProfileRepository profileRepository,
+            ImageBackupService imageBackupService,
+            BackupProperties backupProperties) {
         this.imageGenerationService = imageGenerationService;
         this.profileRepository = profileRepository;
+        this.imageBackupService = imageBackupService;
+        this.backupProperties = backupProperties;
     }
 
     /**
@@ -137,7 +147,7 @@ public class ProfileService {
         return profileRepository.findById(id)
             .map(profile -> {
                 try {
-                    MDC.put("profileId", profile.id());
+                    LoggingUtils.setProfileId(profile.id());
 
                     // Create directories if they don't exist
                     Files.createDirectories(imagesDir);
@@ -167,7 +177,7 @@ public class ProfileService {
                     logger.error("Error generating image for profile: {}", profile.id(), e);
                     throw new RuntimeException("Failed to generate image for profile: " + profile.id(), e);
                 } finally {
-                    MDC.remove("profileId");
+                    LoggingUtils.clearMDC();
                 }
             });
     }
@@ -197,6 +207,18 @@ public class ProfileService {
         // Write the updated profiles to a JSON file
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(imagesDir.resolve("profiles_with_images.json").toFile(), updatedProfiles);
+
+        // Perform automatic backup if configured
+        if (backupProperties.isAutoBackup()) {
+            try {
+                logger.info("Auto-backup is enabled. Creating backup of generated images.");
+                int backedUpFiles = imageBackupService.createBackup(imagesDir);
+                logger.info("Auto-backup completed. {} files backed up.", backedUpFiles);
+            } catch (IOException e) {
+                logger.error("Failed to create automatic backup of images", e);
+                // Don't throw the exception as this is a secondary operation
+            }
+        }
 
         return updatedProfiles;
     }
