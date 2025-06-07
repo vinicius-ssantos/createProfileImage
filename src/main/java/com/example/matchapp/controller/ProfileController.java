@@ -3,7 +3,9 @@ package com.example.matchapp.controller;
 import com.example.matchapp.dto.CreateProfileRequest;
 import com.example.matchapp.dto.ProfileResponse;
 import com.example.matchapp.dto.UpdateProfileRequest;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ProfileService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -77,19 +79,11 @@ public class ProfileController {
     public ResponseEntity<ProfileResponse> createProfile(@Valid @RequestBody CreateProfileRequest request) {
         logger.info("POST request to create a new profile");
 
-        // Convert DTO to domain model
-        Profile profile = new Profile(
-                null, // ID will be generated
-                request.firstName(),
-                request.lastName(),
-                request.age(),
-                request.ethnicity(),
-                request.gender(),
-                request.bio(),
-                request.imageUrl() != null ? request.imageUrl() : UUID.randomUUID().toString() + ".jpg",
-                request.myersBriggsPersonalityType(),
-                false
-        );
+        // Convert DTO to domain model using mapper
+        ProfileEntity entity = ProfileMapper.createRequestToEntity(request);
+
+        // For backward compatibility, convert to Profile record
+        Profile profile = ProfileMapper.toProfile(entity);
 
         Profile createdProfile = profileService.createProfile(profile);
         return ResponseEntity.status(HttpStatus.CREATED).body(ProfileResponse.fromProfile(createdProfile));
@@ -108,19 +102,14 @@ public class ProfileController {
 
         return profileService.getProfileById(id)
                 .map(existingProfile -> {
-                    // Create a new profile with updated fields, keeping existing values for null fields
-                    Profile updatedProfile = new Profile(
-                            id,
-                            request.firstName() != null ? request.firstName() : existingProfile.firstName(),
-                            request.lastName() != null ? request.lastName() : existingProfile.lastName(),
-                            request.age() != null ? request.age() : existingProfile.age(),
-                            request.ethnicity() != null ? request.ethnicity() : existingProfile.ethnicity(),
-                            request.gender() != null ? request.gender() : existingProfile.gender(),
-                            request.bio() != null ? request.bio() : existingProfile.bio(),
-                            request.imageUrl() != null ? request.imageUrl() : existingProfile.imageUrl(),
-                            request.myersBriggsPersonalityType() != null ? request.myersBriggsPersonalityType() : existingProfile.myersBriggsPersonalityType(),
-                            existingProfile.imageGenerated()
-                    );
+                    // Convert to entity
+                    ProfileEntity existingEntity = ProfileMapper.toProfileEntity(existingProfile);
+
+                    // Update entity with request data
+                    ProfileEntity updatedEntity = ProfileMapper.updateEntityFromRequest(existingEntity, request);
+
+                    // For backward compatibility, convert back to Profile record
+                    Profile updatedProfile = ProfileMapper.toProfile(updatedEntity);
 
                     return profileService.updateProfile(id, updatedProfile)
                             .map(ProfileResponse::fromProfile)

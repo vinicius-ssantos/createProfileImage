@@ -21,19 +21,8 @@ public class ProfileMapper {
      * @param entity the profile entity to convert
      * @return a ProfileResponse DTO
      */
-    public static ProfileResponse toProfileResponse(ProfileEntity entity) {
-        return new ProfileResponse(
-                entity.getId(),
-                entity.getFirstName(),
-                entity.getLastName(),
-                entity.getAge(),
-                entity.getEthnicity(),
-                entity.getGender(),
-                entity.getBio(),
-                entity.getImageUrl(),
-                entity.getMyersBriggsPersonalityType(),
-                entity.isImageGenerated()
-        );
+    public static ProfileResponse entityToResponse(ProfileEntity entity) {
+        return ProfileResponse.fromEntity(entity);
     }
 
     /**
@@ -42,7 +31,7 @@ public class ProfileMapper {
      * @param request the request DTO to convert
      * @return a new ProfileEntity
      */
-    public static ProfileEntity toProfileEntity(CreateProfileRequest request) {
+    public static ProfileEntity createRequestToEntity(CreateProfileRequest request) {
         return new ProfileEntity(
                 null, // ID will be generated
                 request.firstName(),
@@ -64,7 +53,7 @@ public class ProfileMapper {
      * @param request the request containing the updated data
      * @return the updated ProfileEntity
      */
-    public static ProfileEntity updateProfileEntity(ProfileEntity entity, UpdateProfileRequest request) {
+    public static ProfileEntity updateEntityFromRequest(ProfileEntity entity, UpdateProfileRequest request) {
         if (request.firstName() != null) {
             entity.setFirstName(request.firstName());
         }

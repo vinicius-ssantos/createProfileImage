@@ -1,6 +1,7 @@
 package com.example.matchapp.dto;
 
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.model.Gender;
 
 /**
@@ -20,9 +21,10 @@ public record ProfileResponse(
         boolean imageGenerated
 ) {
     /**
-     * Create a ProfileResponse from a Profile entity.
+     * Create a ProfileResponse from a Profile record.
+     * This method is kept for backward compatibility during the transition.
      *
-     * @param profile the profile entity
+     * @param profile the profile record
      * @return a new ProfileResponse
      */
     public static ProfileResponse fromProfile(Profile profile) {
@@ -37,6 +39,27 @@ public record ProfileResponse(
                 profile.imageUrl(),
                 profile.myersBriggsPersonalityType(),
                 profile.imageGenerated()
+        );
+    }
+
+    /**
+     * Create a ProfileResponse from a ProfileEntity.
+     *
+     * @param entity the profile entity
+     * @return a new ProfileResponse
+     */
+    public static ProfileResponse fromEntity(ProfileEntity entity) {
+        return new ProfileResponse(
+                entity.getId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getAge(),
+                entity.getEthnicity(),
+                entity.getGender(),
+                entity.getBio(),
+                entity.getImageUrl(),
+                entity.getMyersBriggsPersonalityType(),
+                entity.isImageGenerated()
         );
     }
 }

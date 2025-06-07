@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 /**
  * Service for managing profiles and generating profile images.
+ * This service uses ProfileEntity as the primary domain model and converts to/from Profile records
+ * for backward compatibility with existing code.
  */
 @Service
 public class ProfileService {
@@ -140,9 +142,9 @@ public class ProfileService {
         logger.info("Generating image for profile with ID: {}", id);
 
         return profileRepository.findById(id)
-            .map(profile -> {
+            .map(entity -> {
                 try {
-                    LoggingUtils.setProfileId(profile.getId());
+                    LoggingUtils.setProfileId(entity.getId());
 
                     // Create directories if they don't exist
                     Files.createDirectories(imagesDir);
@@ -150,28 +152,28 @@ public class ProfileService {
                     byte[] image;
 
                     // Check if image exists in cache
-                    if (imageCacheService.hasImageInCache(profile, imagesDir)) {
-                        logger.info("Using cached image for profile: {}", profile.getId());
-                        Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(profile, imagesDir);
+                    if (imageCacheService.hasImageInCache(entity, imagesDir)) {
+                        logger.info("Using cached image for profile: {}", entity.getId());
+                        Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(entity, imagesDir);
                         if (cachedImage.isPresent()) {
                             image = cachedImage.get();
                         } else {
                             // This should not happen if hasImageInCache returned true, but just in case
-                            logger.warn("Cache inconsistency detected for profile: {}", profile.getId());
-                            image = generateAndCacheImage(profile, imagesDir);
+                            logger.warn("Cache inconsistency detected for profile: {}", entity.getId());
+                            image = generateAndCacheImage(entity, imagesDir);
                         }
                     } else {
                         // Generate new image if not in cache
-                        image = generateAndCacheImage(profile, imagesDir);
+                        image = generateAndCacheImage(entity, imagesDir);
                     }
 
                     // Update the profile to mark the image as generated
-                    profile.setImageGenerated(true);
-                    ProfileEntity updatedEntity = profileRepository.save(profile);
+                    entity.setImageGenerated(true);
+                    ProfileEntity updatedEntity = profileRepository.save(entity);
                     return ProfileMapper.toProfile(updatedEntity);
                 } catch (IOException e) {
-                    logger.error("Error generating image for profile: {}", profile.getId(), e);
-                    throw new RuntimeException("Failed to generate image for profile: " + profile.getId(), e);
+                    logger.error("Error generating image for profile: {}", entity.getId(), e);
+                    throw new RuntimeException("Failed to generate image for profile: " + entity.getId(), e);
                 } finally {
                     LoggingUtils.clearMDC();
                 }
@@ -181,18 +183,17 @@ public class ProfileService {
     /**
      * Generates an image for a profile and caches it.
      *
-     * @param profile the profile to generate an image for
+     * @param entity the profile entity to generate an image for
      * @param imagesDir the directory to save the image to
      * @return the generated image bytes
      * @throws IOException if there's an error generating or caching the image
      */
-    private byte[] generateAndCacheImage(ProfileEntity profile, Path imagesDir) throws IOException {
-        logger.info("Generating new image for profile: {}", profile.getId());
-
-        byte[] image = imageGenerationService.generateImage(profile);
+    private byte[] generateAndCacheImage(ProfileEntity entity, Path imagesDir) throws IOException {
+        logger.info("Generating new image for profile: {}", entity.getId());
+        byte[] image = imageGenerationService.generateImage(entity);
 
         // Cache the image
-        imageCacheService.putImageInCache(profile, image, imagesDir);
+        imageCacheService.putImageInCache(entity, image, imagesDir);
 
         return image;
     }
@@ -210,18 +211,14 @@ public class ProfileService {
         // Create directories if they don't exist
         Files.createDirectories(imagesDir);
 
-        List<ProfileEntity> profileEntities = profileRepository.findAll();
-        List<Profile> profiles = profileEntities.stream()
-                .map(ProfileMapper::toProfile)
-                .collect(Collectors.toList());
+        List<ProfileEntity> entities = profileRepository.findAll();
 
-        for (Profile profile : profiles) {
-            generateImageForProfile(profile.id(), imagesDir);
+        for (ProfileEntity entity : entities) {
+            generateImageForProfile(entity.getId(), imagesDir);
         }
 
         // Get the updated profiles with image generation status
-        List<ProfileEntity> updatedProfileEntities = profileRepository.findAll();
-        List<Profile> updatedProfiles = updatedProfileEntities.stream()
+        List<Profile> updatedProfiles = profileRepository.findAll().stream()
                 .map(ProfileMapper::toProfile)
                 .collect(Collectors.toList());
 

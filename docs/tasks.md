@@ -6,7 +6,7 @@
 [x] 3. Create a more robust prompt generation strategy using profile attributes
 [x] 4. Implement caching mechanism to avoid regenerating existing images
 [x] 5. Add support for different image generation providers (not just OpenAI)
-[ ] 6. Implement a proper domain model with separation from DTOs
+[x] 6. Implement a proper domain model with separation from DTOs
 [ ] 7. Create a configuration validator to ensure all required settings are present
 [ ] 8. Implement database persistence instead of in-memory storage
 [ ] 9. Add pagination support for listing profiles
