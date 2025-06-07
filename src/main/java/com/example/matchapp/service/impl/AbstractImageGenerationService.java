@@ -2,18 +2,17 @@ package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.exception.ImageGenerationException;
-import com.example.matchapp.metrics.ImageGenerationMetrics;
 import com.example.matchapp.model.Profile;
-import com.example.matchapp.service.ImageCacheService;
 import com.example.matchapp.service.ImageGenerationService;
 import com.example.matchapp.service.PromptBuilderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import com.example.matchapp.util.LoggingUtils;
 
 /**
  * Abstract base class for image generation services.
- * Provides common functionality like caching, metrics, and logging.
+ * Provides common functionality and structure for different providers.
  */
 public abstract class AbstractImageGenerationService implements ImageGenerationService {
 
@@ -21,65 +20,28 @@ public abstract class AbstractImageGenerationService implements ImageGenerationS
 
     protected final ImageGenProperties properties;
     protected final PromptBuilderService promptBuilder;
-    protected final ImageCacheService imageCacheService;
-    protected final ImageGenerationMetrics metrics;
 
     protected AbstractImageGenerationService(
             ImageGenProperties properties,
-            PromptBuilderService promptBuilder,
-            ImageCacheService imageCacheService,
-            ImageGenerationMetrics metrics) {
+            PromptBuilderService promptBuilder) {
         this.properties = properties;
         this.promptBuilder = promptBuilder;
-        this.imageCacheService = imageCacheService;
-        this.metrics = metrics;
     }
 
     @Override
     public byte[] generateImage(Profile profile) {
-        MDC.put("profileId", profile.id());
-        // Start timer for response time measurement
-        var timerSample = metrics.startTimer();
-
-        // Record the request
-        metrics.recordRequest();
+        LoggingUtils.setProfileId(profile.id());
 
         try {
-            // Check if image is already in cache
-            if (imageCacheService.hasImage(profile)) {
-                logger.info("Image found in cache for profile {}", profile.id());
-                byte[] cachedImage = imageCacheService.getImage(profile);
-                if (cachedImage != null) {
-                    // Record cache hit
-                    metrics.recordCacheHit();
-                    return cachedImage;
-                }
-                logger.warn("Cache reported image exists but returned null for profile {}", profile.id());
-            }
-
             logger.info("Requesting image generation from provider: {}", getProviderName());
 
-            try {
-                // Call the provider-specific implementation
-                byte[] imageData = generateImageFromProvider(profile);
-
-                // Store the image in the cache
-                logger.debug("Storing image in cache for profile {}", profile.id());
-                imageCacheService.putImage(profile, imageData);
-
-                // Record successful API call
-                metrics.recordSuccess();
-
-                return imageData;
-            } catch (Exception e) {
-                logger.error("Error generating image with provider: {}", getProviderName(), e);
-                metrics.recordFailure();
-                throw handleProviderException(e);
-            }
+            // Call the provider-specific implementation
+            return generateImageFromProvider(profile);
+        } catch (Exception e) {
+            logger.error("Error generating image with provider: {}", getProviderName(), e);
+            throw handleProviderException(e);
         } finally {
-            // Always stop the timer and remove MDC context
-            metrics.stopTimer(timerSample);
-            MDC.remove("profileId");
+            LoggingUtils.clearMDC();
         }
     }
 

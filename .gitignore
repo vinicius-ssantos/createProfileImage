@@ -37,3 +37,4 @@ http-client.env.json
 src/main/resources/static/images/*.json
 /.env
 /src/main/resources/static/images/*.jpg
+*.log
