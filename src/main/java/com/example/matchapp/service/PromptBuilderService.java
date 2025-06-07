@@ -1,6 +1,6 @@
 package com.example.matchapp.service;
 
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 
 /**
  * Service for building image generation prompts from profile data.
@@ -12,5 +12,5 @@ public interface PromptBuilderService {
      * @param profile user profile
      * @return prompt string
      */
-    String buildPrompt(Profile profile);
+    String buildPrompt(ProfileEntity profile);
 }
