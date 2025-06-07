@@ -15,16 +15,16 @@
 
 ## Code Quality
 [x] 12. Add comprehensive JavaDoc to all classes and methods
-[ ] 13. Implement input validation for profile data
-[ ] 14. Add more unit tests for edge cases and error scenarios
+[x] 13. Implement input validation for profile data
+[x] 14. Add more unit tests for edge cases and error scenarios
 [ ] 15. Create integration tests for the OpenAI service
 [ ] 16. Implement proper exception hierarchy for different error types
-[ ] 17. Add logging throughout the application for better observability
+[x] 17. Add logging throughout the application for better observability
 [ ] 18. Refactor the ProfileService to follow Single Responsibility Principle
 [ ] 19. Use consistent error handling across all services
 [ ] 20. Replace RestTemplate with WebClient in all services
-[ ] 21. Add validation for Myers-Briggs personality types
-[ ] 22. Create enum for gender values instead of using strings
+[x] 21. Add validation for Myers-Briggs personality types
+[x] 22. Create enum for gender values instead of using strings
 [ ] 23. Implement mapper classes for DTO-to-entity conversion
 
 ## Features
