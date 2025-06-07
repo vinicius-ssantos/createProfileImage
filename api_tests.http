@@ -1,0 +1,97 @@
+### API Test File for create_ia_profiles
+### This file contains HTTP requests to test all available API endpoints
+
+### Variables
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+### Environment variables
+# To use environment variables, create a file named 'http-client.env.json' with the following content:
+# {
+#   "dev": {
+#     "OPENAI_API_KEY": "your-api-key-here"
+#   }
+# }
+# Then select the 'dev' environment in your HTTP client
+
+### ===== Profile Management Endpoints =====
+
+### Get all profiles
+GET {{baseUrl}}/api/profiles
+Accept: {{contentType}}
+
+### Get a profile by ID
+# Replace {id} with an actual profile ID
+GET {{baseUrl}}/api/profiles/profile-1
+Accept: {{contentType}}
+
+### Create a new profile
+POST {{baseUrl}}/api/profiles
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 30,
+  "ethnicity": "Caucasian",
+  "gender": "MALE",
+  "bio": "A friendly software developer who enjoys hiking and reading.",
+  "myersBriggsPersonalityType": "INTJ"
+}
+
+### Update an existing profile
+# Replace {id} with an actual profile ID
+PUT {{baseUrl}}/api/profiles/profile-1
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 31,
+  "bio": "An experienced software developer who enjoys hiking, reading, and traveling."
+}
+
+### Delete a profile
+# Replace {id} with an actual profile ID
+DELETE {{baseUrl}}/api/profiles/profile-1
+
+### Generate an image for a specific profile
+# Replace {id} with an actual profile ID
+POST {{baseUrl}}/api/profiles/profile-1/generate-image
+Content-Type: {{contentType}}
+
+### Generate images for all profiles
+POST {{baseUrl}}/api/profiles/generate-images
+Content-Type: {{contentType}}
+
+### ===== Image Generation Endpoints =====
+
+### Generate an image based on profile information
+POST {{baseUrl}}/api/images/generate
+Content-Type: {{contentType}}
+
+{
+  "id": "custom-profile-1",
+  "firstName": "Maria",
+  "lastName": "Silva",
+  "age": 26,
+  "ethnicity": "Hispanic",
+  "gender": "FEMALE",
+  "bio": "A creative designer with a passion for art and photography. She has a warm smile and friendly demeanor.",
+  "myersBriggsPersonalityType": "ENFP"
+}
+
+### ===== OpenAI Direct API Test =====
+
+### Generate image using OpenAI API directly
+# Note: This requires OPENAI_API_KEY environment variable to be set
+POST https://api.openai.com/v1/images/generations
+Authorization: Bearer {{OPENAI_API_KEY}}
+Content-Type: application/json
+
+{
+  "prompt": "Mulher hispânica de 26 anos com sorriso amigável",
+  "n": 1,
+  "size": "1024x1024",
+  "response_format": "b64_json"
+}
