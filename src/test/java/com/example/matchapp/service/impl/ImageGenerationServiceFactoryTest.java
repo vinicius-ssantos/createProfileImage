@@ -4,6 +4,7 @@ import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.Gender;
 import com.example.matchapp.model.ImageProvider;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,14 +46,14 @@ class ImageGenerationServiceFactoryTest {
 
         // Override WebClient creation and other initialization that might cause issues
         @Override
-        public byte[] generateImage(Profile profile) {
+        public byte[] generateImage(ProfileEntity profile) {
             // Return dummy image data
             return new byte[] {1, 2, 3, 4, 5};
         }
 
         // Override the method that would normally make API calls
         @Override
-        protected byte[] generateImageFromProvider(Profile profile) {
+        protected byte[] generateImageFromProvider(ProfileEntity profile) throws Exception {
             // Return dummy image data without making any API calls
             return new byte[] {1, 2, 3, 4, 5};
         }
@@ -75,13 +76,13 @@ class ImageGenerationServiceFactoryTest {
 
         // Override methods that would normally make API calls
         @Override
-        public byte[] generateImage(Profile profile) {
+        public byte[] generateImage(ProfileEntity profileEntity) {
             // Return dummy image data
             return new byte[] {1, 2, 3, 4, 5};
         }
 
         @Override
-        protected byte[] generateImageFromProvider(Profile profile) {
+        protected byte[] generateImageFromProvider(ProfileEntity profileEntity) {
             // Return dummy image data without making any API calls
             return new byte[] {1, 2, 3, 4, 5};
         }

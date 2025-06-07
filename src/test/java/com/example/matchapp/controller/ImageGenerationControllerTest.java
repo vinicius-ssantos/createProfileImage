@@ -2,6 +2,7 @@ package com.example.matchapp.controller;
 
 import com.example.matchapp.dto.GenerateImageRequest;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +74,7 @@ class ImageGenerationControllerTest {
         byte[] sampleImage = createSampleImage();
 
         // Mock the service to return the sample image
-        when(imageGenerationService.generateImage(any(Profile.class))).thenReturn(sampleImage);
+        when(imageGenerationService.generateImage(any(ProfileEntity.class))).thenReturn(sampleImage);
 
         String requestJson = objectMapper.writeValueAsString(request);
 

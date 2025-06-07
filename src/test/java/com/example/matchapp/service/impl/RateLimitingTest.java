@@ -4,6 +4,7 @@ import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.exception.RateLimitExceededException;
 import com.example.matchapp.model.Gender;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
 import com.example.matchapp.service.RateLimiterService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,7 @@ class RateLimitingTest {
         }
 
         @Override
-        protected byte[] generateImageFromProvider(Profile profile) throws Exception {
+        protected byte[] generateImageFromProvider(ProfileEntity profileEntity) throws Exception {
             // Call the rate limiter
             rateLimiterService.acquire();
             rateLimiterCalled.set(true);
@@ -85,7 +86,7 @@ class RateLimitingTest {
     @Test
     void acquiresRateLimiterPermitBeforeGeneratingImage() throws Exception {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profileEntity = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
@@ -98,7 +99,7 @@ class RateLimitingTest {
         );
 
         // Act
-        service.generateImageFromProvider(profile);
+        service.generateImageFromProvider(profileEntity);
 
         // Assert
         verify(rateLimiter, times(1)).acquire();
@@ -107,7 +108,7 @@ class RateLimitingTest {
     @Test
     void propagatesRateLimitExceptionWhenLimitExceeded() throws Exception {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profileEntity = new ProfileEntity(
             "test-id", 
             "Test", 
             "User", 
@@ -124,7 +125,7 @@ class RateLimitingTest {
 
         // Act & Assert
         assertThrows(RateLimitExceededException.class, () -> {
-            service.generateImageFromProvider(profile);
+            service.generateImageFromProvider(profileEntity);
         });
 
         // No need to verify retryTemplate as we're using a real instance

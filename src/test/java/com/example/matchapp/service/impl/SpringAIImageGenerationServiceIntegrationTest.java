@@ -1,7 +1,9 @@
 package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +70,7 @@ class SpringAIImageGenerationServiceIntegrationTest {
             return;
         }
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
             "test-integration-id", 
             "Test", 
             "User", 
@@ -80,7 +82,7 @@ class SpringAIImageGenerationServiceIntegrationTest {
             "INTJ"
         );
 
-        logger.info("Starting real API test with profile: {}", profile.id());
+        logger.info("Starting real API test with profile: {}", profile.getId());
 
         // Act
         byte[] imageBytes = service.generateImage(profile);

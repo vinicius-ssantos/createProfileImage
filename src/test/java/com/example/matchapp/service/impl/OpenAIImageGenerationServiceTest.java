@@ -1,7 +1,9 @@
 package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,8 +50,8 @@ class OpenAIImageGenerationServiceTest {
         }
 
         @Override
-        public byte[] generateImage(Profile profile) {
-            capturedRequest = createRequest(profile);
+        public byte[] generateImage(ProfileEntity profileEntity) {
+            capturedRequest = createRequest(profileEntity);
             return new byte[] {1, 2, 3};
         }
 
@@ -71,7 +73,7 @@ class OpenAIImageGenerationServiceTest {
     @Test
     void generateImage_includesModelField() {
         // Arrange
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
                 "id",
                 "First",
                 "Last",
@@ -98,7 +100,7 @@ class OpenAIImageGenerationServiceTest {
     void generateImage_usesPromptBuilderService() {
         // Arrange
         String expectedPrompt = "Test prompt for image generation";
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
                 "test-id",
                 "Jane",
                 "Doe",

@@ -1,6 +1,6 @@
 package com.example.matchapp.service;
 
-import com.example.matchapp.model.Profile;
+import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.impl.DefaultPromptBuilderService;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ class DefaultPromptBuilderServiceTest {
 
     @Test
     void buildPrompt_combinesAllProfileAttributes() {
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
                 "id",
                 "Valentina",
                 "Rodriguez",
@@ -47,7 +47,7 @@ class DefaultPromptBuilderServiceTest {
 
     @Test
     void buildPrompt_handlesNullBio() {
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
                 "id",
                 "John",
                 "Smith",
@@ -74,7 +74,7 @@ class DefaultPromptBuilderServiceTest {
 
     @Test
     void buildPrompt_handlesUnknownPersonalityType() {
-        Profile profile = new Profile(
+        ProfileEntity profile = new ProfileEntity(
                 "id",
                 "Alex",
                 "Johnson",
