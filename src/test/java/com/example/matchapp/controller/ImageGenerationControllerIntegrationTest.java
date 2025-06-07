@@ -83,7 +83,7 @@ class ImageGenerationControllerIntegrationTest {
         logger.info("Starting real API test with profile: {}", profile.id());
 
         // Act
-        MvcResult result = mockMvc.perform(post("/api/images/generate")
+        MvcResult result = mockMvc.perform(post("/images/generate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(profileJson))
                 .andExpect(status().isOk())

@@ -78,7 +78,7 @@ class ImageGenerationControllerTest {
         String requestJson = objectMapper.writeValueAsString(request);
 
         // Act & Assert
-        MvcResult result = mockMvc.perform(post("/api/images/generate")
+        MvcResult result = mockMvc.perform(post("/images/generate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isOk())

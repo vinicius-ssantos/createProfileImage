@@ -25,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
  * Provides endpoints to generate images using the OpenAI API.
  */
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/images")
 public class ImageGenerationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageGenerationController.class);
