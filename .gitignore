@@ -32,6 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 http-client.env.json
+# Environment files containing secrets
+.env
 src/main/resources/static/images/*.json
 /.env
 /src/main/resources/static/images/*.jpg

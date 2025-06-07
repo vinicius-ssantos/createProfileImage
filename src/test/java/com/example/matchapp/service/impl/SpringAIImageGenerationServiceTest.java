@@ -44,7 +44,7 @@ class SpringAIImageGenerationServiceTest {
         private Map<String, Object> capturedRequestBody;
 
         public TestSpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
-            super(properties, promptBuilder);
+            super(properties, promptBuilder, () -> { /* no-op */ });
         }
 
         // Method to set the mock response
@@ -107,8 +107,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -153,8 +153,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -181,8 +181,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"
@@ -213,8 +213,8 @@ class SpringAIImageGenerationServiceTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation", 
             "test.jpg", 
             "INTJ"

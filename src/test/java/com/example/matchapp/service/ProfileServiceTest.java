@@ -35,7 +35,7 @@ class ProfileServiceTest {
             "User",
             30,
             "Test Ethnicity",
-            "Male",
+            com.example.matchapp.model.Gender.MALE,
             "Test bio for image generation",
             "test.jpg",
             "INTJ"

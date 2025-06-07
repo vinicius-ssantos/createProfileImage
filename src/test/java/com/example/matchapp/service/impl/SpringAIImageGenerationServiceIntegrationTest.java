@@ -49,7 +49,7 @@ class SpringAIImageGenerationServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        service = new SpringAIImageGenerationService(properties, promptBuilderService);
+        service = new SpringAIImageGenerationService(properties, promptBuilderService, () -> { /* no-op */ });
     }
 
     /**
@@ -72,8 +72,8 @@ class SpringAIImageGenerationServiceIntegrationTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "A professional portrait photo of a smiling man with short brown hair", 
             "test-integration.jpg", 
             "INTJ"

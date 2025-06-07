@@ -27,7 +27,12 @@ This project provides a RESTful API for managing user profiles and generating pr
    # OpenAI API Configuration
    OPENAI_API_KEY=your_openai_api_key
    OPENAI_BASE_URL=https://api.openai.com/v1/images/generations
+   IMAGEGEN_REQUESTS_PER_MINUTE=60
    ```
+   The `IMAGEGEN_REQUESTS_PER_MINUTE` variable sets a simple client-side
+   rate limit to avoid exhausting your API quota. Adjust as needed.
+   This file should **not** be committed to version control. The project
+   `.gitignore` already excludes `.env` to keep your API key private.
 
 2. The application supports three environments:
    - `dev`: Development environment with verbose logging and development-specific settings
@@ -108,7 +113,7 @@ curl -X POST http://localhost:8080/api/profiles \
     "lastName": "Doe",
     "age": 30,
     "ethnicity": "White",
-    "gender": "MALE",
+    "gender": "MALE", // MALE, FEMALE, or OTHER
     "bio": "Software developer with a passion for AI",
     "myersBriggsPersonalityType": "INTJ"
   }'

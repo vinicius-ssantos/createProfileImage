@@ -63,8 +63,8 @@ class ImageGenerationControllerTest {
             "Test", 
             "User", 
             30, 
-            "Test Ethnicity", 
-            "MALE", 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
             "A professional portrait photo", 
             "INTJ"
         );
