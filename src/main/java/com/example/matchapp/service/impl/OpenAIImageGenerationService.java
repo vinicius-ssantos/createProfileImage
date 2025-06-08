@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@org.springframework.context.annotation.Profile("!test")
 public class OpenAIImageGenerationService extends AbstractImageGenerationService {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAIImageGenerationService.class);
