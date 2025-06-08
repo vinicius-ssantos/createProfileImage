@@ -31,6 +31,7 @@ import java.util.Map;
 
 @Service
 @Primary
+@org.springframework.context.annotation.Profile("!test")
 public class SpringAIImageGenerationService extends AbstractImageGenerationService {
 
     private static final Logger logger = LoggerFactory.getLogger(SpringAIImageGenerationService.class);
