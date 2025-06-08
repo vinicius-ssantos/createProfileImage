@@ -1,6 +1,9 @@
 package com.example.matchapp.service;
 
 import com.example.matchapp.config.BackupProperties;
+import com.example.matchapp.exception.ConfigurationException;
+import com.example.matchapp.exception.FileOperationException;
+import com.example.matchapp.exception.ServiceException;
 import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
@@ -70,19 +73,19 @@ public class ProfileService {
             BackupProperties backupProperties,
             ImageCacheService imageCacheService) {
         if (imageGenerationService == null) {
-            throw new NullPointerException("ImageGenerationService cannot be null");
+            throw new ConfigurationException("ImageGenerationService cannot be null", "imageGenerationService", "null");
         }
         if (profileRepository == null) {
-            throw new NullPointerException("ProfileRepository cannot be null");
+            throw new ConfigurationException("ProfileRepository cannot be null", "profileRepository", "null");
         }
         if (imageBackupService == null) {
-            throw new NullPointerException("ImageBackupService cannot be null");
+            throw new ConfigurationException("ImageBackupService cannot be null", "imageBackupService", "null");
         }
         if (backupProperties == null) {
-            throw new NullPointerException("BackupProperties cannot be null");
+            throw new ConfigurationException("BackupProperties cannot be null", "backupProperties", "null");
         }
         if (imageCacheService == null) {
-            throw new NullPointerException("ImageCacheService cannot be null");
+            throw new ConfigurationException("ImageCacheService cannot be null", "imageCacheService", "null");
         }
     }
 
@@ -243,7 +246,8 @@ public class ProfileService {
                     return ProfileMapper.toProfile(updatedEntity);
                 } catch (IOException e) {
                     logger.error("Error generating image for profile: {}", entity.getId(), e);
-                    throw new RuntimeException("Failed to generate image for profile: " + entity.getId(), e);
+                    throw new ServiceException("Failed to generate image for profile: " + entity.getId(), e, 
+                            "ProfileService", "generateImageForProfile", true);
                 } finally {
                     LoggingUtils.clearMDC();
                 }
@@ -279,10 +283,15 @@ public class ProfileService {
     public List<Profile> generateImages(Path imagesDir) throws IOException {
         logger.info("Generating images for all profiles");
 
-        // Create directories if they don't exist
-        Files.createDirectories(imagesDir);
+        try {
+            // Create directories if they don't exist
+            Files.createDirectories(imagesDir);
+        } catch (IOException e) {
+            throw new FileOperationException("Failed to create image directory", e, imagesDir, "createDirectories", true);
+        }
 
         List<ProfileEntity> entities = profileRepository.findAll();
+        List<String> failedProfiles = new java.util.ArrayList<>();
 
         // Use parallel stream to process profiles concurrently
         entities.parallelStream().forEach(entity -> {
@@ -290,9 +299,15 @@ public class ProfileService {
                 generateImageForProfile(entity.getId(), imagesDir);
             } catch (IOException e) {
                 logger.error("Error generating image for profile: {}", entity.getId(), e);
+                failedProfiles.add(entity.getId());
                 // Continue processing other profiles even if one fails
             }
         });
+
+        if (!failedProfiles.isEmpty()) {
+            logger.warn("Failed to generate images for {} profiles: {}", 
+                    failedProfiles.size(), String.join(", ", failedProfiles));
+        }
 
         // Get the updated profiles with image generation status
         List<Profile> updatedProfiles = profileRepository.findAll().stream()
@@ -301,7 +316,12 @@ public class ProfileService {
 
         // Write the updated profiles to a JSON file
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.writeValue(imagesDir.resolve("profiles_with_images.json").toFile(), updatedProfiles);
+        try {
+            objectMapper.writeValue(imagesDir.resolve("profiles_with_images.json").toFile(), updatedProfiles);
+        } catch (IOException e) {
+            throw new FileOperationException("Failed to write profiles to JSON file", e, 
+                    imagesDir.resolve("profiles_with_images.json"), "write", true);
+        }
 
         // Perform automatic backup if configured
         if (backupProperties.isAutoBackup()) {
@@ -311,7 +331,8 @@ public class ProfileService {
                 logger.info("Auto-backup completed. {} files backed up.", backedUpFiles);
             } catch (IOException e) {
                 logger.error("Failed to create automatic backup of images", e);
-                // Don't throw the exception as this is a secondary operation
+                // Log warning but don't throw exception as this is a secondary operation
+                logger.warn("Automatic backup failed but image generation completed successfully");
             }
         }
 

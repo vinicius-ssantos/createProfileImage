@@ -1,5 +1,6 @@
 package com.example.matchapp.service;
 
+import com.example.matchapp.exception.ConfigurationException;
 import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
@@ -31,7 +32,7 @@ public class ProfileCrudService {
 
     public ProfileCrudService(ProfileRepository profileRepository) {
         if (profileRepository == null) {
-            throw new NullPointerException("ProfileRepository cannot be null");
+            throw new ConfigurationException("ProfileRepository cannot be null", "profileRepository", "null");
         }
         this.profileRepository = profileRepository;
     }
@@ -144,7 +145,7 @@ public class ProfileCrudService {
     @Transactional
     public Optional<Profile> updateImageGenerationStatus(String id, boolean imageGenerated) {
         logger.info("Updating image generation status for profile with ID: {}", id);
-        
+
         return profileRepository.findById(id)
             .map(entity -> {
                 entity.setImageGenerated(imageGenerated);

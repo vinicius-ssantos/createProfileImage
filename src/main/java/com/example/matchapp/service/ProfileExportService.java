@@ -1,5 +1,6 @@
 package com.example.matchapp.service;
 
+import com.example.matchapp.exception.ConfigurationException;
 import com.example.matchapp.model.Profile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class ProfileExportService {
 
     public ProfileExportService(ObjectMapper objectMapper) {
         if (objectMapper == null) {
-            throw new NullPointerException("ObjectMapper cannot be null");
+            throw new ConfigurationException("ObjectMapper cannot be null", "objectMapper", "null");
         }
         this.objectMapper = objectMapper;
     }

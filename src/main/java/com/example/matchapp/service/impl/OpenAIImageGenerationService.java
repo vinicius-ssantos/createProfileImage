@@ -4,6 +4,7 @@ import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.exception.ApiAuthenticationException;
 import com.example.matchapp.exception.ApiConnectionException;
 import com.example.matchapp.exception.ApiRateLimitException;
+import com.example.matchapp.exception.ConfigurationException;
 import com.example.matchapp.exception.ImageGenerationException;
 import com.example.matchapp.exception.InvalidResponseException;
 import com.example.matchapp.model.Profile;
@@ -84,12 +85,12 @@ public class OpenAIImageGenerationService extends AbstractImageGenerationService
      * Validates the API key to ensure it's not missing or using a default placeholder value.
      * 
      * @param apiKey the API key to validate
-     * @throws IllegalStateException if the API key is invalid
+     * @throws ConfigurationException if the API key is invalid
      */
     private void validateApiKey(String apiKey) {
         if (!StringUtils.hasText(apiKey) || "your_openai_key_here".equals(apiKey)) {
             logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
-            throw new IllegalStateException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
+            throw new ConfigurationException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.", "apiKey", apiKey);
         }
     }
 
@@ -123,23 +124,23 @@ public class OpenAIImageGenerationService extends AbstractImageGenerationService
             RetryTemplate retryTemplate,
             RateLimiterService rateLimiter) {
         if (properties == null) {
-            throw new NullPointerException("ImageGenProperties cannot be null");
+            throw new ConfigurationException("ImageGenProperties cannot be null", "properties", "null");
         }
         if (promptBuilder == null) {
-            throw new NullPointerException("PromptBuilderService cannot be null");
+            throw new ConfigurationException("PromptBuilderService cannot be null", "promptBuilder", "null");
         }
         if (retryTemplate == null) {
-            throw new NullPointerException("RetryTemplate cannot be null");
+            throw new ConfigurationException("RetryTemplate cannot be null", "retryTemplate", "null");
         }
         if (rateLimiter == null) {
-            throw new NullPointerException("RateLimiterService cannot be null");
+            throw new ConfigurationException("RateLimiterService cannot be null", "rateLimiter", "null");
         }
 
         // Validate the API key
         String apiKey = properties.getApiKey();
         if (!StringUtils.hasText(apiKey) || "your_openai_key_here".equals(apiKey)) {
             logger.error("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
-            throw new IllegalStateException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.");
+            throw new ConfigurationException("OpenAI API key is missing or using the default placeholder value. Please set a valid OPENAI_API_KEY environment variable in your .env file or system environment variables.", "apiKey", apiKey);
         }
     }
 

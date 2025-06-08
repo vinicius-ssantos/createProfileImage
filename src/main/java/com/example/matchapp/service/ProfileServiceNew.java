@@ -1,6 +1,8 @@
 package com.example.matchapp.service;
 
 import com.example.matchapp.config.BackupProperties;
+import com.example.matchapp.exception.ConfigurationException;
+import com.example.matchapp.exception.ServiceException;
 import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
@@ -70,19 +72,19 @@ public class ProfileServiceNew {
             BackupProperties backupProperties,
             ImageCacheService imageCacheService) {
         if (imageGenerationService == null) {
-            throw new NullPointerException("ImageGenerationService cannot be null");
+            throw new ConfigurationException("ImageGenerationService cannot be null", "imageGenerationService", "null");
         }
         if (profileRepository == null) {
-            throw new NullPointerException("ProfileRepository cannot be null");
+            throw new ConfigurationException("ProfileRepository cannot be null", "profileRepository", "null");
         }
         if (imageBackupService == null) {
-            throw new NullPointerException("ImageBackupService cannot be null");
+            throw new ConfigurationException("ImageBackupService cannot be null", "imageBackupService", "null");
         }
         if (backupProperties == null) {
-            throw new NullPointerException("BackupProperties cannot be null");
+            throw new ConfigurationException("BackupProperties cannot be null", "backupProperties", "null");
         }
         if (imageCacheService == null) {
-            throw new NullPointerException("ImageCacheService cannot be null");
+            throw new ConfigurationException("ImageCacheService cannot be null", "imageCacheService", "null");
         }
     }
 
@@ -226,7 +228,8 @@ public class ProfileServiceNew {
                     return ProfileMapper.toProfile(updatedEntity);
                 } catch (IOException e) {
                     logger.error("Error generating image for profile: {}", entity.getId(), e);
-                    throw new RuntimeException("Failed to generate image for profile: " + entity.getId(), e);
+                    throw new ServiceException("Failed to generate image for profile: " + entity.getId(), e, 
+                            "ProfileServiceNew", "generateImageForProfile", true);
                 } finally {
                     LoggingUtils.clearMDC();
                 }
