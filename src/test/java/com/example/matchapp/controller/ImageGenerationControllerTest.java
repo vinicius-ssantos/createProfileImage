@@ -1,6 +1,8 @@
 package com.example.matchapp.controller;
 
 import com.example.matchapp.dto.GenerateImageRequest;
+import com.example.matchapp.mapper.GenerateImageRequestMapper;
+import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.ImageGenerationService;
@@ -44,6 +46,12 @@ class ImageGenerationControllerTest {
     @Mock
     private ImageGenerationService imageGenerationService;
 
+    @Mock
+    private GenerateImageRequestMapper generateImageRequestMapper;
+
+    @Mock
+    private ProfileMapper profileMapper;
+
     @InjectMocks
     private ImageGenerationController controller;
 
@@ -72,6 +80,27 @@ class ImageGenerationControllerTest {
 
         // Create a sample image
         byte[] sampleImage = createSampleImage();
+
+        // Create a Profile object that would be returned by the mapper
+        Profile profile = new Profile(
+            "test-id", 
+            "Test", 
+            "User", 
+            30, 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
+            "A professional portrait photo", 
+            null, 
+            "INTJ"
+        );
+
+        // Create a ProfileEntity object that would be returned by the mapper
+        ProfileEntity profileEntity = new ProfileEntity();
+        profileEntity.setId("test-id");
+
+        // Mock the mappers to return the test objects
+        when(generateImageRequestMapper.toProfile(any(GenerateImageRequest.class))).thenReturn(profile);
+        when(profileMapper.toEntity(any(Profile.class))).thenReturn(profileEntity);
 
         // Mock the service to return the sample image
         when(imageGenerationService.generateImage(any(ProfileEntity.class))).thenReturn(sampleImage);
