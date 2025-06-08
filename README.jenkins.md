@@ -11,11 +11,24 @@ The easiest way to set up both Jenkins and SonarQube is to use Docker Compose, w
 - Git installed on your machine
 - At least 6GB of RAM available for Docker
 
-### Steps to Set Up Jenkins and SonarQube with Docker Compose
+### Option 1: Using H2 Database (Simple Setup)
+
+This option uses an in-memory H2 database for SonarQube, which is simpler but may have some limitations.
+
+> **Note:** The H2 database configuration includes special parameters to handle reserved keywords (like 'value') that can cause initialization errors. If you encounter database errors, consider using Option 2 with PostgreSQL instead.
 
 1. **Start the services using Docker Compose**:
    ```powershell
    docker-compose up -d
+   ```
+
+### Option 2: Using PostgreSQL Database (Recommended for Production)
+
+This option uses PostgreSQL for SonarQube, which is more robust and recommended for production use.
+
+1. **Start the services using the PostgreSQL configuration**:
+   ```powershell
+   docker-compose -f docker-compose.postgres.yml up -d
    ```
 
 2. **Get the initial Jenkins admin password**:
@@ -43,14 +56,61 @@ The easiest way to set up both Jenkins and SonarQube is to use Docker Compose, w
    - Configure SonarQube for the Project (Step 4 in "Setting Up SonarQube Locally")
 
 6. **Stopping the services**:
+
+   For H2 configuration:
    ```powershell
    docker-compose down
    ```
 
+   For PostgreSQL configuration:
+   ```powershell
+   docker-compose -f docker-compose.postgres.yml down
+   ```
+
 7. **Stopping the services and removing volumes**:
+
+   For H2 configuration:
    ```powershell
    docker-compose down -v
    ```
+
+   For PostgreSQL configuration:
+   ```powershell
+   docker-compose -f docker-compose.postgres.yml down -v
+   ```
+
+## Troubleshooting
+
+### Common Issues with SonarQube
+
+1. **Database Initialization Errors**:
+   - **Symptom**: SonarQube fails to start with errors like `Syntax error in SQL statement` or `expected "identifier"` in the logs.
+   - **Solution**: 
+     - Try using the PostgreSQL configuration instead of H2: `docker-compose -f docker-compose.postgres.yml up -d`
+     - If you must use H2, ensure you're using the latest version of the docker-compose.yml file with the proper H2 configuration parameters.
+
+2. **Memory Issues**:
+   - **Symptom**: SonarQube or Jenkins crashes with out-of-memory errors.
+   - **Solution**: Increase the memory allocated to Docker in your Docker Desktop settings.
+
+3. **Port Conflicts**:
+   - **Symptom**: Services fail to start with errors about ports already being in use.
+   - **Solution**: Stop any other services using ports 8080, 9000, or 5432, or modify the port mappings in the docker-compose files.
+
+### Viewing Logs
+
+To view logs for troubleshooting:
+
+```powershell
+# View SonarQube logs
+docker logs sonarqube
+
+# View Jenkins logs
+docker logs jenkins
+
+# View PostgreSQL logs (if using PostgreSQL)
+docker logs sonarqube_postgres
+```
 
 ## Setting Up Jenkins Locally (Manual Method)
 

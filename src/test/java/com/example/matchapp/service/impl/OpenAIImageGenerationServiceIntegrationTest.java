@@ -1,0 +1,160 @@
+package com.example.matchapp.service.impl;
+
+import com.example.matchapp.config.ImageGenProperties;
+import com.example.matchapp.model.ProfileEntity;
+import com.example.matchapp.service.PromptBuilderService;
+import com.example.matchapp.service.RateLimiterService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.test.context.ActiveProfiles;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for OpenAIImageGenerationService that makes real API calls.
+ * 
+ * This test will only run if the OPENAI_API_KEY environment variable is set and
+ * the RUN_API_TESTS environment variable is set to "true".
+ * 
+ * To run this test:
+ * 1. Set the OPENAI_API_KEY environment variable to your OpenAI API key
+ * 2. Set the RUN_API_TESTS environment variable to "true"
+ * 3. Run the test
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+class OpenAIImageGenerationServiceIntegrationTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(OpenAIImageGenerationServiceIntegrationTest.class);
+
+    @Autowired
+    @Qualifier("imageGenProperties")
+    private ImageGenProperties properties;
+
+    @Autowired
+    private PromptBuilderService promptBuilderService;
+    
+    @Autowired
+    private RetryTemplate retryTemplate;
+    
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
+    private OpenAIImageGenerationService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new OpenAIImageGenerationService(properties, promptBuilderService, retryTemplate, rateLimiterService);
+    }
+
+    /**
+     * Tests that the service can generate an image by making a real API call.
+     * This test will only run if the OPENAI_API_KEY and RUN_API_TESTS environment variables are set.
+     */
+    @Test
+    void generateImage_makesRealApiCall_returnsValidImage() throws IOException {
+        // Skip test if environment variables aren't set
+        String apiKey = System.getenv("OPENAI_API_KEY");
+        String runApiTests = System.getenv("RUN_API_TESTS");
+
+        if (apiKey == null || apiKey.isEmpty() || !"true".equals(runApiTests)) {
+            logger.info("Skipping test because OPENAI_API_KEY is not set or RUN_API_TESTS is not 'true'");
+            return;
+        }
+        
+        // Arrange
+        ProfileEntity profile = new ProfileEntity(
+            "test-openai-integration-id", 
+            "Test", 
+            "User", 
+            30, 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
+            "A professional portrait photo of a smiling man with short brown hair", 
+            "test-openai-integration.jpg", 
+            "INTJ"
+        );
+
+        logger.info("Starting real API test with profile: {}", profile.getId());
+
+        // Act
+        byte[] imageBytes = service.generateImage(profile);
+
+        // Assert
+        assertNotNull(imageBytes, "Image bytes should not be null");
+        assertTrue(imageBytes.length > 0, "Image bytes should not be empty");
+
+        // Verify the bytes can be read as an image
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        assertNotNull(image, "Should be able to read bytes as an image");
+        assertEquals(1024, image.getWidth(), "Image width should be 1024 pixels");
+        assertEquals(1024, image.getHeight(), "Image height should be 1024 pixels");
+
+        // Save the image to a file for manual inspection (optional)
+        Path testOutputDir = Paths.get("target", "test-output");
+        Files.createDirectories(testOutputDir);
+        Path imagePath = testOutputDir.resolve("test-openai-integration-image.jpg");
+        Files.write(imagePath, imageBytes);
+
+        logger.info("Successfully generated and verified image. Saved to: {}", imagePath);
+    }
+    
+    /**
+     * Tests that the service properly handles API errors.
+     * This test uses an invalid API key to trigger an authentication error.
+     */
+    @Test
+    void generateImage_withInvalidApiKey_throwsApiAuthenticationException() {
+        // Skip test if environment variables aren't set
+        String runApiTests = System.getenv("RUN_API_TESTS");
+
+        if (!"true".equals(runApiTests)) {
+            logger.info("Skipping test because RUN_API_TESTS is not 'true'");
+            return;
+        }
+        
+        // Arrange
+        // Create a copy of properties with an invalid API key
+        ImageGenProperties invalidProperties = new ImageGenProperties();
+        invalidProperties.setApiKey("invalid-api-key");
+        invalidProperties.setBaseUrl(properties.getBaseUrl());
+        
+        OpenAIImageGenerationService serviceWithInvalidKey = new OpenAIImageGenerationService(
+            invalidProperties, promptBuilderService, retryTemplate, rateLimiterService);
+        
+        ProfileEntity profile = new ProfileEntity(
+            "test-openai-error-id", 
+            "Test", 
+            "User", 
+            30, 
+            "Test Ethnicity",
+            com.example.matchapp.model.Gender.MALE,
+            "A professional portrait photo", 
+            "test-openai-error.jpg", 
+            "INTJ"
+        );
+
+        logger.info("Starting API error test with profile: {}", profile.getId());
+
+        // Act & Assert
+        assertThrows(com.example.matchapp.exception.ApiAuthenticationException.class, () -> {
+            serviceWithInvalidKey.generateImage(profile);
+        }, "Should throw ApiAuthenticationException with invalid API key");
+        
+        logger.info("Successfully verified API authentication error handling");
+    }
+}

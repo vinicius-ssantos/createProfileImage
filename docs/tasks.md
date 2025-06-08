@@ -9,15 +9,15 @@
 [x] 6. Implement a proper domain model with separation from DTOs
 [x] 7. Create a configuration validator to ensure all required settings are present
 [x] 8. Implement database persistence instead of in-memory storage
-[ ] 9. Add pagination support for listing profiles
-[ ] 10. Implement proper transaction management
+[x] 9. Add pagination support for listing profiles
+[x] 10. Implement proper transaction management
 [x] 11. Create environment-specific configuration profiles (dev, test, prod)
 
 ## Code Quality
 [x] 12. Add comprehensive JavaDoc to all classes and methods
 [x] 13. Implement input validation for profile data
 [x] 14. Add more unit tests for edge cases and error scenarios
-[ ] 15. Create integration tests for the OpenAI service
+[x] 15. Create integration tests for the OpenAI service
 [ ] 16. Implement proper exception hierarchy for different error types
 [x] 17. Add logging throughout the application for better observability
 [ ] 18. Refactor the ProfileService to follow Single Responsibility Principle

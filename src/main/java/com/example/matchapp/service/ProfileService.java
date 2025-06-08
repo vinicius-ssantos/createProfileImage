@@ -8,7 +8,10 @@ import com.example.matchapp.repository.ProfileRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.matchapp.util.LoggingUtils;
 
 import java.io.IOException;
@@ -23,8 +26,12 @@ import java.util.stream.Collectors;
  * Service for managing profiles and generating profile images.
  * This service uses ProfileEntity as the primary domain model and converts to/from Profile records
  * for backward compatibility with existing code.
+ * 
+ * The class is marked as @Transactional(readOnly = true) to optimize read operations,
+ * while specific write methods are explicitly marked with @Transactional.
  */
 @Service
+@Transactional(readOnly = true)
 public class ProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
@@ -112,6 +119,19 @@ public class ProfileService {
     }
 
     /**
+     * Get all profiles with pagination.
+     *
+     * @param pageable pagination information including page number, page size, and sorting
+     * @return a page of profiles
+     */
+    public Page<Profile> getAllProfiles(Pageable pageable) {
+        logger.info("Retrieving profiles with pagination: page={}, size={}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+        return profileRepository.findAll(pageable)
+                .map(ProfileMapper::toProfile);
+    }
+
+    /**
      * Get a profile by ID.
      *
      * @param id the profile ID
@@ -129,6 +149,7 @@ public class ProfileService {
      * @param profile the profile to create
      * @return the created profile
      */
+    @Transactional
     public Profile createProfile(Profile profile) {
         // Generate a new ID if one isn't provided
         String id = (profile.id() == null || profile.id().isEmpty()) 
@@ -154,6 +175,7 @@ public class ProfileService {
      * @param profile the updated profile data
      * @return an Optional containing the updated profile if found, or empty if not found
      */
+    @Transactional
     public Optional<Profile> updateProfile(String id, Profile profile) {
         logger.info("Updating profile with ID: {}", id);
 
@@ -176,6 +198,7 @@ public class ProfileService {
      * @param id the profile ID
      * @return true if the profile was deleted, false if it wasn't found
      */
+    @Transactional
     public boolean deleteProfile(String id) {
         logger.info("Deleting profile with ID: {}", id);
         return profileRepository.deleteById(id);
@@ -189,6 +212,7 @@ public class ProfileService {
      * @return an Optional containing the updated profile if found, or empty if not found
      * @throws IOException if there's an error writing the image file
      */
+    @Transactional
     public Optional<Profile> generateImageForProfile(String id, Path imagesDir) throws IOException {
         logger.info("Generating image for profile with ID: {}", id);
 
@@ -256,6 +280,7 @@ public class ProfileService {
      * @return a list of profiles with generated images
      * @throws IOException if there's an error writing the image files
      */
+    @Transactional
     public List<Profile> generateImages(Path imagesDir) throws IOException {
         logger.info("Generating images for all profiles");
 
@@ -264,9 +289,15 @@ public class ProfileService {
 
         List<ProfileEntity> entities = profileRepository.findAll();
 
-        for (ProfileEntity entity : entities) {
-            generateImageForProfile(entity.getId(), imagesDir);
-        }
+        // Use parallel stream to process profiles concurrently
+        entities.parallelStream().forEach(entity -> {
+            try {
+                generateImageForProfile(entity.getId(), imagesDir);
+            } catch (IOException e) {
+                logger.error("Error generating image for profile: {}", entity.getId(), e);
+                // Continue processing other profiles even if one fails
+            }
+        });
 
         // Get the updated profiles with image generation status
         List<Profile> updatedProfiles = profileRepository.findAll().stream()

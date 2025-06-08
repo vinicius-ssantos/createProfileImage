@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * REST controller for profile management.
@@ -56,6 +58,23 @@ public class ProfileController {
         List<ProfileResponse> responses = profileService.getAllProfiles().stream()
                 .map(ProfileResponse::fromProfile)
                 .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Get all profiles with pagination.
+     *
+     * @param pageable pagination information including page number, page size, and sorting
+     * @return a page of profiles
+     */
+    @GetMapping("/paged")
+    public ResponseEntity<Page<ProfileResponse>> getPagedProfiles(Pageable pageable) {
+        logger.info("GET request to fetch profiles with pagination: page={}, size={}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<ProfileResponse> responses = profileService.getAllProfiles(pageable)
+                .map(ProfileResponse::fromProfile);
+
         return ResponseEntity.ok(responses);
     }
 
