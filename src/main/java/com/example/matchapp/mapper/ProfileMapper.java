@@ -6,6 +6,7 @@ import com.example.matchapp.dto.UpdateProfileRequest;
 import com.example.matchapp.model.Gender;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
  * Mapper class for converting between Profile domain entities and DTOs.
  * This class provides methods to convert between different representations of profiles.
  */
+@Component
 public class ProfileMapper {
 
     /**
@@ -21,7 +23,7 @@ public class ProfileMapper {
      * @param entity the profile entity to convert
      * @return a ProfileResponse DTO
      */
-    public static ProfileResponse entityToResponse(ProfileEntity entity) {
+    public ProfileResponse entityToResponse(ProfileEntity entity) {
         return ProfileResponse.fromEntity(entity);
     }
 
@@ -31,7 +33,7 @@ public class ProfileMapper {
      * @param request the request DTO to convert
      * @return a new ProfileEntity
      */
-    public static ProfileEntity createRequestToEntity(CreateProfileRequest request) {
+    public ProfileEntity createRequestToEntity(CreateProfileRequest request) {
         return new ProfileEntity(
                 null, // ID will be generated
                 request.firstName(),
@@ -53,7 +55,7 @@ public class ProfileMapper {
      * @param request the request containing the updated data
      * @return the updated ProfileEntity
      */
-    public static ProfileEntity updateEntityFromRequest(ProfileEntity entity, UpdateProfileRequest request) {
+    public ProfileEntity updateEntityFromRequest(ProfileEntity entity, UpdateProfileRequest request) {
         if (request.firstName() != null) {
             entity.setFirstName(request.firstName());
         }
@@ -83,7 +85,49 @@ public class ProfileMapper {
 
     /**
      * Convert a Profile record to a ProfileEntity.
-     * This is used for backward compatibility during the transition.
+     *
+     * @param profile the profile record to convert
+     * @return a new ProfileEntity
+     */
+    public ProfileEntity toEntity(Profile profile) {
+        return new ProfileEntity(
+                profile.id(),
+                profile.firstName(),
+                profile.lastName(),
+                profile.age(),
+                profile.ethnicity(),
+                profile.gender(),
+                profile.bio(),
+                profile.imageUrl(),
+                profile.myersBriggsPersonalityType(),
+                profile.imageGenerated()
+        );
+    }
+
+    /**
+     * Convert a ProfileEntity to a Profile record.
+     *
+     * @param entity the profile entity to convert
+     * @return a new Profile record
+     */
+    public Profile toDomain(ProfileEntity entity) {
+        return new Profile(
+                entity.getId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getAge(),
+                entity.getEthnicity(),
+                entity.getGender(),
+                entity.getBio(),
+                entity.getImageUrl(),
+                entity.getMyersBriggsPersonalityType(),
+                entity.isImageGenerated()
+        );
+    }
+
+    /**
+     * For backward compatibility with code that uses the static methods.
+     * This method will be deprecated in a future release.
      *
      * @param profile the profile record to convert
      * @return a new ProfileEntity
@@ -104,8 +148,8 @@ public class ProfileMapper {
     }
 
     /**
-     * Convert a ProfileEntity to a Profile record.
-     * This is used for backward compatibility during the transition.
+     * For backward compatibility with code that uses the static methods.
+     * This method will be deprecated in a future release.
      *
      * @param entity the profile entity to convert
      * @return a new Profile record

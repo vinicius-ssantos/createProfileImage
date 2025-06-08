@@ -137,7 +137,7 @@ public class ProfileServiceTemp {
      * @param id the profile ID
      * @param imagesDir the directory to save the image to
      * @return an Optional containing the updated profile if found, or empty if not found
-     * @throws ServiceException if there's an error writing the image file
+     * @throws ServiceException if there's an error generating or writing the image file
      */
     @Transactional
     public Optional<Profile> generateImageForProfile(String id, Path imagesDir) {
@@ -167,7 +167,7 @@ public class ProfileServiceTemp {
      *
      * @param imagesDir the directory to save the images to
      * @return a list of profiles with generated images
-     * @throws ServiceException if there's an error writing the image files
+     * @throws ServiceException if there's an error generating or writing the image files
      */
     @Transactional
     public List<Profile> generateImages(Path imagesDir) {

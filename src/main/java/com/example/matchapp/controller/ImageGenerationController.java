@@ -1,6 +1,7 @@
 package com.example.matchapp.controller;
 
 import com.example.matchapp.dto.GenerateImageRequest;
+import com.example.matchapp.mapper.GenerateImageRequestMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.mapper.ProfileMapper;
@@ -32,9 +33,16 @@ public class ImageGenerationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageGenerationController.class);
     private final ImageGenerationService imageGenerationService;
+    private final GenerateImageRequestMapper generateImageRequestMapper;
+    private final ProfileMapper profileMapper;
 
-    public ImageGenerationController(ImageGenerationService imageGenerationService) {
+    public ImageGenerationController(
+            ImageGenerationService imageGenerationService,
+            GenerateImageRequestMapper generateImageRequestMapper,
+            ProfileMapper profileMapper) {
         this.imageGenerationService = imageGenerationService;
+        this.generateImageRequestMapper = generateImageRequestMapper;
+        this.profileMapper = profileMapper;
     }
 
     /**
@@ -61,11 +69,11 @@ public class ImageGenerationController {
         logger.info("Received request to generate image for profile: {}", request.id());
 
         try {
-            // Convert DTO to domain model
-            Profile profile = request.toProfile();
+            // Convert DTO to domain model using the mapper
+            Profile profile = generateImageRequestMapper.toProfile(request);
 
-            // Convert Profile to ProfileEntity
-            ProfileEntity profileEntity = ProfileMapper.toProfileEntity(profile);
+            // Convert Profile to ProfileEntity using the mapper
+            ProfileEntity profileEntity = profileMapper.toEntity(profile);
 
             byte[] imageBytes = imageGenerationService.generateImage(profileEntity);
             logger.info("Successfully generated image for profile: {}", profile.id());

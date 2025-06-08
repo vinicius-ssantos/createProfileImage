@@ -37,14 +37,21 @@ public class ProfileController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
     private final ProfileService profileService;
+    private final ProfileMapper profileMapper;
 
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(
+            ProfileService profileService,
+            ProfileMapper profileMapper) {
         // Validate parameters before assigning to fields
         if (profileService == null) {
             throw new NullPointerException("ProfileService cannot be null");
         }
-        // ProfileService is an interface/service, not a mutable object that needs defensive copying
+        if (profileMapper == null) {
+            throw new NullPointerException("ProfileMapper cannot be null");
+        }
+        // These are interfaces/services, not mutable objects that need defensive copying
         this.profileService = profileService;
+        this.profileMapper = profileMapper;
     }
 
     /**
@@ -104,10 +111,10 @@ public class ProfileController {
         logger.info("POST request to create a new profile");
 
         // Convert DTO to domain model using mapper
-        ProfileEntity entity = ProfileMapper.createRequestToEntity(request);
+        ProfileEntity entity = profileMapper.createRequestToEntity(request);
 
         // For backward compatibility, convert to Profile record
-        Profile profile = ProfileMapper.toProfile(entity);
+        Profile profile = profileMapper.toDomain(entity);
 
         Profile createdProfile = profileService.createProfile(profile);
         return ResponseEntity.status(HttpStatus.CREATED).body(ProfileResponse.fromProfile(createdProfile));
@@ -127,13 +134,13 @@ public class ProfileController {
         return profileService.getProfileById(id)
                 .map(existingProfile -> {
                     // Convert to entity
-                    ProfileEntity existingEntity = ProfileMapper.toProfileEntity(existingProfile);
+                    ProfileEntity existingEntity = profileMapper.toEntity(existingProfile);
 
                     // Update entity with request data
-                    ProfileEntity updatedEntity = ProfileMapper.updateEntityFromRequest(existingEntity, request);
+                    ProfileEntity updatedEntity = profileMapper.updateEntityFromRequest(existingEntity, request);
 
                     // For backward compatibility, convert back to Profile record
-                    Profile updatedProfile = ProfileMapper.toProfile(updatedEntity);
+                    Profile updatedProfile = profileMapper.toDomain(updatedEntity);
 
                     return profileService.updateProfile(id, updatedProfile)
                             .map(ProfileResponse::fromProfile)
