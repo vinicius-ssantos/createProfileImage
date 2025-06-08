@@ -26,16 +26,16 @@ import java.util.Optional;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProfileService {
+class ProfileServiceOld {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProfileServiceOld.class);
 
     private final ProfileCrudService profileCrudService;
     private final ProfileImageGenerationService profileImageGenerationService;
     private final ProfileExportService profileExportService;
     private final ProfileRepository profileRepository;
 
-    public ProfileService(
+    public ProfileServiceOld(
             ProfileCrudService profileCrudService,
             ProfileImageGenerationService profileImageGenerationService,
             ProfileExportService profileExportService,
