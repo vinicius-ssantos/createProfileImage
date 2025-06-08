@@ -1,8 +1,14 @@
 package com.example.matchapp.service.impl;
 
 import com.example.matchapp.config.ImageGenProperties;
+import com.example.matchapp.exception.ApiAuthenticationException;
+import com.example.matchapp.exception.ApiConnectionException;
+import com.example.matchapp.exception.ApiRateLimitException;
+import com.example.matchapp.exception.ImageGenerationException;
+import com.example.matchapp.exception.InvalidResponseException;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
+import com.example.matchapp.service.RateLimiterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.matchapp.util.LoggingUtils;
@@ -10,8 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
@@ -107,120 +117,41 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
     @Override
     protected RuntimeException handleProviderException(Exception exception) {
         // Use the same exception types as OpenAIImageGenerationService for consistency
-        if (exception instanceof com.example.matchapp.exception.ImageGenerationException) {
+        if (exception instanceof ImageGenerationException) {
             // Just log and rethrow our custom exceptions
             logger.error("Error in Spring AI image generation: {}", exception.getMessage(), exception);
             return (RuntimeException) exception;
-        } else if (exception.getMessage() != null && exception.getMessage().contains("401 Unauthorized")) {
-            logger.error("Authentication failed with Spring AI API. Please check your API key in the .env file.", exception);
-            return new com.example.matchapp.exception.ApiAuthenticationException(
-                "Authentication failed with Spring AI API. Please check your API key in the .env file.", exception);
-        } else if (exception.getMessage() != null && exception.getMessage().contains("429 Too Many Requests")) {
-            logger.warn("Rate limit exceeded with Spring AI API. Will retry after backoff.", exception);
-            return new com.example.matchapp.exception.ApiRateLimitException("Rate limit exceeded with Spring AI API", exception);
-        } else if (exception.getMessage() != null && (
-                exception.getMessage().contains("500 Internal Server Error") ||
-                exception.getMessage().contains("502 Bad Gateway") ||
-                exception.getMessage().contains("503 Service Unavailable") ||
-                exception.getMessage().contains("504 Gateway Timeout"))) {
+        } else if (exception instanceof HttpClientErrorException) {
+            HttpClientErrorException httpException = (HttpClientErrorException) exception;
+            int statusCode = httpException.getStatusCode().value();
+
+            if (statusCode == 401 || statusCode == 403) {
+                logger.error("Authentication failed with Spring AI API. Please check your API key.", exception);
+                return new ApiAuthenticationException("Authentication failed with Spring AI API. Please check your API key.", exception);
+            } else if (statusCode == 429) {
+                logger.warn("Rate limit exceeded with Spring AI API. Will retry after backoff.", exception);
+                return new ApiRateLimitException("Rate limit exceeded with Spring AI API", exception);
+            } else {
+                logger.error("Error response from Spring AI API: {}", httpException.getResponseBodyAsString(), exception);
+                return new ImageGenerationException("Error response from Spring AI API: " + statusCode, exception);
+            }
+        } else if (exception instanceof HttpServerErrorException) {
             logger.warn("Server error from Spring AI API. Will retry after backoff.", exception);
-            return new com.example.matchapp.exception.ApiConnectionException("Server error from Spring AI API", exception);
+            return new ApiConnectionException("Server error from Spring AI API", exception);
         } else if (exception instanceof java.net.ConnectException || 
                    exception instanceof java.net.SocketTimeoutException) {
             logger.warn("Connection issue with Spring AI API. Will retry after backoff.", exception);
-            return new com.example.matchapp.exception.ApiConnectionException("Connection issue with Spring AI API", exception);
-        } else if (exception.getMessage() != null && (
-                exception.getMessage().equals("Null response from Spring AI API") || 
-                exception.getMessage().equals("Empty image data") ||
-                exception.getMessage().equals("Empty base64 image data"))) {
+            return new ApiConnectionException("Connection issue with Spring AI API", exception);
+        } else if (exception instanceof InvalidResponseException) {
             logger.error("Invalid response from Spring AI API: {}", exception.getMessage(), exception);
-            return new com.example.matchapp.exception.InvalidResponseException(exception.getMessage(), exception);
+            return (InvalidResponseException) exception;
         } else {
             logger.error("Unexpected error during image generation with Spring AI: {}", exception.getMessage(), exception);
-            return new com.example.matchapp.exception.ImageGenerationException(
-                "Error generating image with Spring AI: " + exception.getMessage(), exception);
+            return new ImageGenerationException("Error generating image with Spring AI: " + exception.getMessage(), exception);
         }
     }
 
-    // This method is now overridden by the abstract class
-    // Keeping it for backward compatibility until all code is updated
-    @Override
-    @Deprecated
-    public byte[] generateImage(ProfileEntity profile) {
-        LoggingUtils.setProfileId(profile.getId());
-        try {
-            logger.info("Requesting image generation using Spring AI");
-            rateLimiter.acquire();
-
-            try {
-                // Set up headers with API key
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Authorization", "Bearer " + apiKey);
-
-                // Create request body
-                Map<String, Object> requestBody = new HashMap<>();
-                String prompt = promptBuilder.buildPrompt(profile);
-                requestBody.put("prompt", prompt);
-                requestBody.put("n", 1);
-                requestBody.put("size", "1024x1024");
-                requestBody.put("response_format", "b64_json");
-                requestBody.put("model", "dall-e-3");
-
-                // Make the API call to OpenAI
-                Map<String, Object> response = makeApiCall(baseUrl, requestBody, headers);
-
-                if (response == null) {
-                    throw new com.example.matchapp.exception.InvalidResponseException("Null response from OpenAI");
-                }
-
-                // Extract the base64 image data from the response
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
-                if (data == null || data.isEmpty()) {
-                    throw new com.example.matchapp.exception.InvalidResponseException("Empty image data");
-                }
-
-                String base64Data = (String) data.get(0).get("b64_json");
-                if (base64Data == null || base64Data.isEmpty()) {
-                    throw new com.example.matchapp.exception.InvalidResponseException("Empty base64 image data");
-                }
-
-                // Decode the base64 data to bytes
-                return Base64.getDecoder().decode(base64Data);
-            } catch (Exception e) {
-                if (e instanceof com.example.matchapp.exception.ApplicationException) {
-                    // If it's already one of our custom exceptions, just rethrow it
-                    logger.error("Error generating image with Spring AI: {}", e.getMessage(), e);
-                    throw e;
-                } else if (e.getMessage() != null && e.getMessage().contains("401 Unauthorized")) {
-                    logger.error("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
-                    throw new com.example.matchapp.exception.ApiAuthenticationException(
-                        "Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
-                } else if (e.getMessage() != null && e.getMessage().contains("429 Too Many Requests")) {
-                    logger.warn("Rate limit exceeded with OpenAI API.", e);
-                    throw new com.example.matchapp.exception.ApiRateLimitException("Rate limit exceeded with OpenAI API", e);
-                } else if (e.getMessage() != null && (
-                        e.getMessage().contains("500 Internal Server Error") ||
-                        e.getMessage().contains("502 Bad Gateway") ||
-                        e.getMessage().contains("503 Service Unavailable") ||
-                        e.getMessage().contains("504 Gateway Timeout"))) {
-                    logger.warn("Server error from OpenAI API.", e);
-                    throw new com.example.matchapp.exception.ApiConnectionException("Server error from OpenAI API", e);
-                } else if (e instanceof java.net.ConnectException || 
-                           e instanceof java.net.SocketTimeoutException) {
-                    logger.warn("Connection issue with OpenAI API.", e);
-                    throw new com.example.matchapp.exception.ApiConnectionException("Connection issue with OpenAI API", e);
-                } else {
-                    logger.error("Error generating image with Spring AI OpenAI client", e);
-                    throw new com.example.matchapp.exception.ImageGenerationException(
-                        "Error generating image with Spring AI OpenAI client: " + e.getMessage(), e);
-                }
-            }
-        } finally {
-            LoggingUtils.clearMDC();
-        }
-    }
+    // Removed deprecated generateImage method as it's now properly overridden by the abstract class
 
     /**
      * Makes an API call to the OpenAI API.

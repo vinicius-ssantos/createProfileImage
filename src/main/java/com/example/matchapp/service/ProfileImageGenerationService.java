@@ -1,6 +1,8 @@
 package com.example.matchapp.service;
 
 import com.example.matchapp.config.BackupProperties;
+import com.example.matchapp.exception.ConfigurationException;
+import com.example.matchapp.exception.FileOperationException;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.repository.ProfileRepository;
 import com.example.matchapp.util.LoggingUtils;
@@ -63,19 +65,19 @@ public class ProfileImageGenerationService {
             BackupProperties backupProperties,
             ImageCacheService imageCacheService) {
         if (imageGenerationService == null) {
-            throw new NullPointerException("ImageGenerationService cannot be null");
+            throw new ConfigurationException("ImageGenerationService cannot be null", "imageGenerationService", "null");
         }
         if (profileRepository == null) {
-            throw new NullPointerException("ProfileRepository cannot be null");
+            throw new ConfigurationException("ProfileRepository cannot be null", "profileRepository", "null");
         }
         if (imageBackupService == null) {
-            throw new NullPointerException("ImageBackupService cannot be null");
+            throw new ConfigurationException("ImageBackupService cannot be null", "imageBackupService", "null");
         }
         if (backupProperties == null) {
-            throw new NullPointerException("BackupProperties cannot be null");
+            throw new ConfigurationException("BackupProperties cannot be null", "backupProperties", "null");
         }
         if (imageCacheService == null) {
-            throw new NullPointerException("ImageCacheService cannot be null");
+            throw new ConfigurationException("ImageCacheService cannot be null", "imageCacheService", "null");
         }
     }
 
@@ -100,32 +102,44 @@ public class ProfileImageGenerationService {
      * @param entity the profile entity
      * @param imagesDir the directory to save the image to
      * @return the generated image bytes
-     * @throws IOException if there's an error writing the image file
+     * @throws FileOperationException if there's an error writing the image file
      */
-    public byte[] generateImageForEntity(ProfileEntity entity, Path imagesDir) throws IOException {
+    public byte[] generateImageForEntity(ProfileEntity entity, Path imagesDir) {
         try {
             LoggingUtils.setProfileId(entity.getId());
             logger.info("Generating image for profile: {}", entity.getId());
 
             // Create directories if they don't exist
-            Files.createDirectories(imagesDir);
+            try {
+                Files.createDirectories(imagesDir);
+            } catch (IOException e) {
+                logger.error("Failed to create directories: {}", imagesDir, e);
+                throw new FileOperationException("Failed to create directories: " + imagesDir, e, 
+                    imagesDir, "createDirectories", false);
+            }
 
             byte[] image;
 
             // Check if image exists in cache
-            if (imageCacheService.hasImageInCache(entity, imagesDir)) {
-                logger.info("Using cached image for profile: {}", entity.getId());
-                Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(entity, imagesDir);
-                if (cachedImage.isPresent()) {
-                    image = cachedImage.get();
+            try {
+                if (imageCacheService.hasImageInCache(entity, imagesDir)) {
+                    logger.info("Using cached image for profile: {}", entity.getId());
+                    Optional<byte[]> cachedImage = imageCacheService.getImageFromCache(entity, imagesDir);
+                    if (cachedImage.isPresent()) {
+                        image = cachedImage.get();
+                    } else {
+                        // This should not happen if hasImageInCache returned true, but just in case
+                        logger.warn("Cache inconsistency detected for profile: {}", entity.getId());
+                        image = generateAndCacheImage(entity, imagesDir);
+                    }
                 } else {
-                    // This should not happen if hasImageInCache returned true, but just in case
-                    logger.warn("Cache inconsistency detected for profile: {}", entity.getId());
+                    // Generate new image if not in cache
                     image = generateAndCacheImage(entity, imagesDir);
                 }
-            } else {
-                // Generate new image if not in cache
-                image = generateAndCacheImage(entity, imagesDir);
+            } catch (IOException e) {
+                logger.error("Failed to access image cache for profile: {}", entity.getId(), e);
+                throw new FileOperationException("Failed to access image cache for profile: " + entity.getId(), e, 
+                    imagesDir, "getImageFromCache", true);
             }
 
             return image;
@@ -140,14 +154,20 @@ public class ProfileImageGenerationService {
      * @param entity the profile entity to generate an image for
      * @param imagesDir the directory to save the image to
      * @return the generated image bytes
-     * @throws IOException if there's an error generating or caching the image
+     * @throws FileOperationException if there's an error generating or caching the image
      */
-    private byte[] generateAndCacheImage(ProfileEntity entity, Path imagesDir) throws IOException {
+    private byte[] generateAndCacheImage(ProfileEntity entity, Path imagesDir) {
         logger.info("Generating new image for profile: {}", entity.getId());
         byte[] image = imageGenerationService.generateImage(entity);
 
         // Cache the image
-        imageCacheService.putImageInCache(entity, image, imagesDir);
+        try {
+            imageCacheService.putImageInCache(entity, image, imagesDir);
+        } catch (IOException e) {
+            logger.error("Failed to cache image for profile: {}", entity.getId(), e);
+            throw new FileOperationException("Failed to cache image for profile: " + entity.getId(), e, 
+                imagesDir, "putImageInCache", true);
+        }
 
         return image;
     }
@@ -157,12 +177,18 @@ public class ProfileImageGenerationService {
      *
      * @param imagesDir the directory to backup
      * @return the number of files backed up
-     * @throws IOException if there's an error creating the backup
+     * @throws FileOperationException if there's an error creating the backup
      */
-    public int createBackup(Path imagesDir) throws IOException {
+    public int createBackup(Path imagesDir) {
         if (backupProperties.isAutoBackup()) {
             logger.info("Creating backup of images directory: {}", imagesDir);
-            return imageBackupService.createBackup(imagesDir);
+            try {
+                return imageBackupService.createBackup(imagesDir);
+            } catch (IOException e) {
+                logger.error("Failed to create backup of images directory: {}", imagesDir, e);
+                throw new FileOperationException("Failed to create backup of images directory: " + imagesDir, e, 
+                    imagesDir, "createBackup", true);
+            }
         } else {
             logger.info("Auto-backup is disabled. Skipping backup creation.");
             return 0;
