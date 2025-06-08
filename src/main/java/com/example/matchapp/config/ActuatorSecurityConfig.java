@@ -37,11 +37,11 @@ public class ActuatorSecurityConfig {
                 .requestMatchers(new AntPathRequestMatcher("/actuator/info")).permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic();
-        
+            .httpBasic(httpBasic -> {});
+
         return http.build();
     }
-    
+
     /**
      * Configures security for non-Actuator endpoints.
      * This is a catch-all configuration that allows all requests to non-Actuator endpoints.
@@ -57,7 +57,7 @@ public class ActuatorSecurityConfig {
                 .anyRequest().permitAll()
             )
             .csrf(csrf -> csrf.disable());
-        
+
         return http.build();
     }
 }

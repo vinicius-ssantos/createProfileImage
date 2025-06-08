@@ -2,6 +2,7 @@ package com.example.matchapp.service;
 
 import com.example.matchapp.config.BackupProperties;
 import com.example.matchapp.exception.ConfigurationException;
+import com.example.matchapp.exception.FileOperationException;
 import com.example.matchapp.exception.ServiceException;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
@@ -136,28 +137,28 @@ class ProfileServiceOld {
      * @param id the profile ID
      * @param imagesDir the directory to save the image to
      * @return an Optional containing the updated profile if found, or empty if not found
-     * @throws IOException if there's an error writing the image file
+     * @throws ServiceException if there's an error writing the image file
      */
     @Transactional
-    public Optional<Profile> generateImageForProfile(String id, Path imagesDir) throws IOException {
+    public Optional<Profile> generateImageForProfile(String id, Path imagesDir) {
         logger.info("Generating image for profile with ID: {}", id);
 
         // Create directories if they don't exist
-        Files.createDirectories(imagesDir);
+        try {
+            Files.createDirectories(imagesDir);
+        } catch (IOException e) {
+            logger.error("Failed to create directories: {}", imagesDir, e);
+            throw new ServiceException("Failed to create directories: " + imagesDir, e, 
+                    "ProfileServiceFixed", "generateImageForProfile", true);
+        }
 
         return profileRepository.findById(id)
             .map(entity -> {
-                try {
-                    // Generate the image
-                    byte[] image = profileImageGenerationService.generateImageForEntity(entity, imagesDir);
+                // Generate the image
+                byte[] image = profileImageGenerationService.generateImageForEntity(entity, imagesDir);
 
-                    // Update the profile to mark the image as generated
-                    return profileCrudService.updateImageGenerationStatus(id, true).orElse(null);
-                } catch (IOException e) {
-                    logger.error("Error generating image for profile: {}", entity.getId(), e);
-                    throw new ServiceException("Failed to generate image for profile: " + entity.getId(), e, 
-                            "ProfileServiceOld", "generateImageForProfile", true);
-                }
+                // Update the profile to mark the image as generated
+                return profileCrudService.updateImageGenerationStatus(id, true).orElse(null);
             });
     }
 
@@ -166,14 +167,20 @@ class ProfileServiceOld {
      *
      * @param imagesDir the directory to save the images to
      * @return a list of profiles with generated images
-     * @throws IOException if there's an error writing the image files
+     * @throws ServiceException if there's an error writing the image files
      */
     @Transactional
-    public List<Profile> generateImages(Path imagesDir) throws IOException {
+    public List<Profile> generateImages(Path imagesDir) {
         logger.info("Generating images for all profiles");
 
         // Create directories if they don't exist
-        Files.createDirectories(imagesDir);
+        try {
+            Files.createDirectories(imagesDir);
+        } catch (IOException e) {
+            logger.error("Failed to create directories: {}", imagesDir, e);
+            throw new ServiceException("Failed to create directories: " + imagesDir, e, 
+                    "ProfileServiceFixed", "generateImages", true);
+        }
 
         List<ProfileEntity> entities = profileRepository.findAll();
 
@@ -181,7 +188,7 @@ class ProfileServiceOld {
         entities.parallelStream().forEach(entity -> {
             try {
                 generateImageForProfile(entity.getId(), imagesDir);
-            } catch (IOException e) {
+            } catch (ServiceException e) {
                 logger.error("Error generating image for profile: {}", entity.getId(), e);
                 // Continue processing other profiles even if one fails
             }
@@ -196,7 +203,7 @@ class ProfileServiceOld {
         // Create a backup if needed
         try {
             profileImageGenerationService.createBackup(imagesDir);
-        } catch (IOException e) {
+        } catch (FileOperationException e) {
             logger.error("Failed to create backup of images", e);
             // Don't throw the exception as this is a secondary operation
         }
