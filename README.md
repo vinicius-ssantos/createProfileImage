@@ -163,6 +163,16 @@ mvn test
 mvnw.cmd test  # Windows
 ```
 
+## Running tests in Codex
+
+When the Codex environment cannot reach remote Maven repositories, use the offline test script:
+
+```bash
+./scripts/run_tests_offline.sh
+```
+
+The script downloads a pre-populated Maven cache if needed, sets networking options for Java, and executes the tests in offline mode.
+
 ## Infrastructure as Code
 
 This project includes Terraform configuration for deploying the application to AWS. The infrastructure code is located in the `terraform` directory.
