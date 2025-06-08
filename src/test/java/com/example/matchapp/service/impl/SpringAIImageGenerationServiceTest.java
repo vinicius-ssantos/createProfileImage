@@ -43,6 +43,7 @@ class SpringAIImageGenerationServiceTest {
         private RuntimeException mockException;
         private String capturedPrompt;
         private Map<String, Object> capturedRequestBody;
+        private String capturedUrl;
 
         public TestSpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
             super(properties, promptBuilder, () -> { /* no-op */ });
@@ -68,12 +69,18 @@ class SpringAIImageGenerationServiceTest {
             return capturedRequestBody;
         }
 
+        // Method to get the captured URL
+        public String getCapturedUrl() {
+            return capturedUrl;
+        }
+
         // Override the method that makes the API call
         @Override
         protected Map<String, Object> makeApiCall(String url, Map<String, Object> requestBody, HttpHeaders headers) {
             System.out.println("[DEBUG_LOG] TestSpringAIImageGenerationService.makeApiCall called");
             this.capturedPrompt = (String) requestBody.get("prompt");
             this.capturedRequestBody = new HashMap<>(requestBody);
+            this.capturedUrl = url;
 
             if (mockException != null) {
                 System.out.println("[DEBUG_LOG] Throwing mock exception: " + mockException.getMessage());
@@ -94,6 +101,7 @@ class SpringAIImageGenerationServiceTest {
         ImageGenProperties properties = new ImageGenProperties();
         properties.setApiKey("test-api-key");
         properties.setBaseUrl("https://api.openai.com");
+        properties.setSpringAiBaseUrl("https://api.openai.com");
 
         promptBuilder = new StubPromptBuilderService("built prompt");
         // Create test service with test properties
@@ -144,6 +152,7 @@ class SpringAIImageGenerationServiceTest {
         assertEquals("1024x1024", requestBody.get("size"));
         assertEquals("b64_json", requestBody.get("response_format"));
         assertEquals("dall-e-3", requestBody.get("model"));
+        assertEquals("https://api.openai.com", service.getCapturedUrl());
     }
 
     @Test

@@ -8,11 +8,10 @@ import org.slf4j.LoggerFactory;
 import com.example.matchapp.util.LoggingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -25,7 +24,7 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
 
     private static final Logger logger = LoggerFactory.getLogger(SpringAIImageGenerationService.class);
 
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
     private final String apiKey;
     private final String baseUrl;
     private final com.example.matchapp.service.RateLimiterService rateLimiter;
@@ -38,7 +37,10 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
         super(properties, promptBuilder);
         this.apiKey = properties.getApiKey();
         this.baseUrl = properties.getSpringAiBaseUrl();
-        this.restTemplate = new RestTemplate();
+        this.webClient = WebClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                .build();
         this.rateLimiter = rateLimiter;
     }
 
@@ -232,7 +234,13 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
      * @return The response from the API
      */
     protected Map makeApiCall(String url, Map<String, Object> requestBody, HttpHeaders headers) {
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        return restTemplate.postForObject(url, requestEntity, Map.class);
+        return webClient.post()
+                .uri(url)
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
     }
 }
