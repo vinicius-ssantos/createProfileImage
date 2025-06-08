@@ -20,7 +20,7 @@
 [x] 15. Create integration tests for the OpenAI service
 [x] 16. Implement proper exception hierarchy for different error types
 [x] 17. Add logging throughout the application for better observability
-[ ] 18. Refactor the ProfileService to follow Single Responsibility Principle
+[x] 18. Refactor the ProfileService to follow Single Responsibility Principle
 [ ] 19. Use consistent error handling across all services
 [ ] 20. Replace RestTemplate with WebClient in all services
 [x] 21. Add validation for Myers-Briggs personality types

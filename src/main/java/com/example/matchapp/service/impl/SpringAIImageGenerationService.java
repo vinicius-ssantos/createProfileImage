@@ -79,7 +79,7 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
 
         if (response == null) {
             logger.error("Received null response from Spring AI API");
-            throw new RuntimeException("Null response from Spring AI API");
+            throw new com.example.matchapp.exception.InvalidResponseException("Null response from Spring AI API");
         }
 
         logger.debug("Processing API response");
@@ -88,13 +88,13 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
         List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
         if (data == null || data.isEmpty()) {
             logger.error("Received empty data array in response");
-            throw new RuntimeException("Empty image data");
+            throw new com.example.matchapp.exception.InvalidResponseException("Empty image data");
         }
 
         String base64Data = (String) data.get(0).get("b64_json");
         if (base64Data == null || base64Data.isEmpty()) {
             logger.error("Received empty base64 image data");
-            throw new RuntimeException("Empty base64 image data");
+            throw new com.example.matchapp.exception.InvalidResponseException("Empty base64 image data");
         }
 
         logger.debug("Successfully extracted base64 image data, length: {}", base64Data.length());
@@ -171,33 +171,50 @@ public class SpringAIImageGenerationService extends AbstractImageGenerationServi
                 Map<String, Object> response = makeApiCall(baseUrl, requestBody, headers);
 
                 if (response == null) {
-                    throw new RuntimeException("Null response from OpenAI");
+                    throw new com.example.matchapp.exception.InvalidResponseException("Null response from OpenAI");
                 }
 
                 // Extract the base64 image data from the response
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
                 if (data == null || data.isEmpty()) {
-                    throw new RuntimeException("Empty image data");
+                    throw new com.example.matchapp.exception.InvalidResponseException("Empty image data");
                 }
 
                 String base64Data = (String) data.get(0).get("b64_json");
                 if (base64Data == null || base64Data.isEmpty()) {
-                    throw new RuntimeException("Empty base64 image data");
+                    throw new com.example.matchapp.exception.InvalidResponseException("Empty base64 image data");
                 }
 
                 // Decode the base64 data to bytes
                 return Base64.getDecoder().decode(base64Data);
             } catch (Exception e) {
-                if (e.getMessage() != null && e.getMessage().contains("401 Unauthorized")) {
-                    logger.error("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
-                    throw new IllegalStateException("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
-                } else if (e.getMessage() != null && (e.getMessage().equals("Null response from OpenAI") || e.getMessage().equals("Empty image data"))) {
-                    logger.error("Error generating image with Spring AI OpenAI client", e);
+                if (e instanceof com.example.matchapp.exception.ApplicationException) {
+                    // If it's already one of our custom exceptions, just rethrow it
+                    logger.error("Error generating image with Spring AI: {}", e.getMessage(), e);
                     throw e;
+                } else if (e.getMessage() != null && e.getMessage().contains("401 Unauthorized")) {
+                    logger.error("Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
+                    throw new com.example.matchapp.exception.ApiAuthenticationException(
+                        "Authentication failed with OpenAI API. Please check your API key in the .env file.", e);
+                } else if (e.getMessage() != null && e.getMessage().contains("429 Too Many Requests")) {
+                    logger.warn("Rate limit exceeded with OpenAI API.", e);
+                    throw new com.example.matchapp.exception.ApiRateLimitException("Rate limit exceeded with OpenAI API", e);
+                } else if (e.getMessage() != null && (
+                        e.getMessage().contains("500 Internal Server Error") ||
+                        e.getMessage().contains("502 Bad Gateway") ||
+                        e.getMessage().contains("503 Service Unavailable") ||
+                        e.getMessage().contains("504 Gateway Timeout"))) {
+                    logger.warn("Server error from OpenAI API.", e);
+                    throw new com.example.matchapp.exception.ApiConnectionException("Server error from OpenAI API", e);
+                } else if (e instanceof java.net.ConnectException || 
+                           e instanceof java.net.SocketTimeoutException) {
+                    logger.warn("Connection issue with OpenAI API.", e);
+                    throw new com.example.matchapp.exception.ApiConnectionException("Connection issue with OpenAI API", e);
                 } else {
                     logger.error("Error generating image with Spring AI OpenAI client", e);
-                    throw new RuntimeException("Error generating image with Spring AI OpenAI client: " + e.getMessage(), e);
+                    throw new com.example.matchapp.exception.ImageGenerationException(
+                        "Error generating image with Spring AI OpenAI client: " + e.getMessage(), e);
                 }
             }
         } finally {
