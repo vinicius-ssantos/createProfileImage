@@ -5,6 +5,7 @@ import com.example.matchapp.mapper.ProfileMapper;
 import com.example.matchapp.model.Profile;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.service.PromptBuilderService;
+import com.example.matchapp.service.RateLimiterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.imageio.ImageIO;
@@ -48,11 +50,17 @@ class SpringAIImageGenerationServiceIntegrationTest {
     @Autowired
     private PromptBuilderService promptBuilderService;
 
+    @Autowired
+    private RetryTemplate retryTemplate;
+
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     private SpringAIImageGenerationService service;
 
     @BeforeEach
     void setUp() {
-        service = new SpringAIImageGenerationService(properties, promptBuilderService, () -> { /* no-op */ });
+        service = new SpringAIImageGenerationService(properties, promptBuilderService, rateLimiterService, retryTemplate);
     }
 
     /**

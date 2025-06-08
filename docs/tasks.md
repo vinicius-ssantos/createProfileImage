@@ -25,7 +25,7 @@
 [x] 20. Replace RestTemplate with WebClient in all services
 [x] 21. Add validation for Myers-Briggs personality types
 [x] 22. Create enum for gender values instead of using strings
-[ ] 23. Implement mapper classes for DTO-to-entity conversion
+[x] 23. Implement mapper classes for DTO-to-entity conversion
 
 ## Features
 [ ] 24. Support for male profiles (currently only female profiles are included)

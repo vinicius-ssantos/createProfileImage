@@ -4,9 +4,12 @@ import com.example.matchapp.config.ImageGenProperties;
 import com.example.matchapp.model.ProfileEntity;
 import com.example.matchapp.model.Gender;
 import com.example.matchapp.service.PromptBuilderService;
+import com.example.matchapp.service.RateLimiterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -44,8 +47,12 @@ class SpringAIImageGenerationServiceTest {
         private String capturedPrompt;
         private Map<String, Object> capturedRequestBody;
 
-        public TestSpringAIImageGenerationService(ImageGenProperties properties, PromptBuilderService promptBuilder) {
-            super(properties, promptBuilder, () -> { /* no-op */ });
+        public TestSpringAIImageGenerationService(
+                ImageGenProperties properties, 
+                PromptBuilderService promptBuilder,
+                RateLimiterService rateLimiter,
+                RetryTemplate retryTemplate) {
+            super(properties, promptBuilder, rateLimiter, retryTemplate);
         }
 
         // Method to set the mock response
@@ -68,10 +75,11 @@ class SpringAIImageGenerationServiceTest {
             return capturedRequestBody;
         }
 
-        // Override the method that makes the API call
+        // Override the method that generates the image from the provider
         @Override
-        protected Map<String, Object> makeApiCall(String url, Map<String, Object> requestBody, HttpHeaders headers) {
-            System.out.println("[DEBUG_LOG] TestSpringAIImageGenerationService.makeApiCall called");
+        protected byte[] generateImageFromProvider(ProfileEntity profile) {
+            System.out.println("[DEBUG_LOG] TestSpringAIImageGenerationService.generateImageFromProvider called");
+            Map<String, Object> requestBody = createRequest(profile);
             this.capturedPrompt = (String) requestBody.get("prompt");
             this.capturedRequestBody = new HashMap<>(requestBody);
 
@@ -81,7 +89,29 @@ class SpringAIImageGenerationServiceTest {
             }
 
             System.out.println("[DEBUG_LOG] Returning mock response: " + mockResponse);
-            return mockResponse;
+
+            // Check for null response
+            if (mockResponse == null) {
+                throw new com.example.matchapp.exception.InvalidResponseException("Null response from Spring AI API");
+            }
+
+            // Extract base64 data from mock response
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> data = (List<Map<String, Object>>) mockResponse.get("data");
+
+            // Check for empty data
+            if (data == null || data.isEmpty()) {
+                throw new com.example.matchapp.exception.InvalidResponseException("Empty image data");
+            }
+
+            // Check for missing b64_json field
+            String base64 = (String) data.get(0).get("b64_json");
+            if (base64 == null || base64.isEmpty()) {
+                throw new com.example.matchapp.exception.InvalidResponseException("Missing b64_json field in response");
+            }
+
+            // Decode and return the image data
+            return Base64.getDecoder().decode(base64);
         }
     }
 
@@ -96,8 +126,22 @@ class SpringAIImageGenerationServiceTest {
         properties.setBaseUrl("https://api.openai.com");
 
         promptBuilder = new StubPromptBuilderService("built prompt");
-        // Create test service with test properties
-        service = new TestSpringAIImageGenerationService(properties, promptBuilder);
+
+        // Create mock RateLimiterService
+        RateLimiterService mockRateLimiter = Mockito.mock(RateLimiterService.class);
+
+        // Create mock RetryTemplate
+        RetryTemplate mockRetryTemplate = Mockito.mock(RetryTemplate.class);
+        Mockito.when(mockRetryTemplate.execute(
+                Mockito.any(org.springframework.retry.RetryCallback.class), 
+                Mockito.any(org.springframework.retry.RecoveryCallback.class)
+        )).thenAnswer(invocation -> {
+            // Execute the RetryCallback directly without retrying
+            return invocation.getArgument(0, org.springframework.retry.RetryCallback.class).doWithRetry(null);
+        });
+
+        // Create test service with test properties and mocks
+        service = new TestSpringAIImageGenerationService(properties, promptBuilder, mockRateLimiter, mockRetryTemplate);
     }
 
     @Test
@@ -143,7 +187,7 @@ class SpringAIImageGenerationServiceTest {
         assertEquals(1, requestBody.get("n"));
         assertEquals("1024x1024", requestBody.get("size"));
         assertEquals("b64_json", requestBody.get("response_format"));
-        assertEquals("dall-e-3", requestBody.get("model"));
+        assertEquals("dall-e-2", requestBody.get("model"));
     }
 
     @Test
@@ -167,10 +211,10 @@ class SpringAIImageGenerationServiceTest {
         try {
             // Act
             service.generateImage(profile);
-            fail("Expected RuntimeException was not thrown");
-        } catch (RuntimeException e) {
+            fail("Expected InvalidResponseException was not thrown");
+        } catch (com.example.matchapp.exception.InvalidResponseException e) {
             // Assert
-            assertEquals("Null response from OpenAI", e.getMessage());
+            assertEquals("Null response from Spring AI API", e.getMessage());
         }
     }
 
@@ -199,8 +243,8 @@ class SpringAIImageGenerationServiceTest {
         try {
             // Act
             service.generateImage(profile);
-            fail("Expected RuntimeException was not thrown");
-        } catch (RuntimeException e) {
+            fail("Expected InvalidResponseException was not thrown");
+        } catch (com.example.matchapp.exception.InvalidResponseException e) {
             // Assert
             assertEquals("Empty image data", e.getMessage());
         }
@@ -222,13 +266,17 @@ class SpringAIImageGenerationServiceTest {
         );
 
         // Set a mock exception with 401 Unauthorized
-        service.setMockException(new RuntimeException("401 Unauthorized"));
+        service.setMockException(new org.springframework.web.reactive.function.client.WebClientResponseException(
+            401, "Unauthorized", null, null, null));
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            service.generateImage(profile);
-        });
+        com.example.matchapp.exception.ApiAuthenticationException exception = assertThrows(
+            com.example.matchapp.exception.ApiAuthenticationException.class, 
+            () -> {
+                service.generateImage(profile);
+            }
+        );
 
-        assertTrue(exception.getMessage().contains("Authentication failed with OpenAI API"));
+        assertTrue(exception.getMessage().contains("Authentication failed with Spring AI API"));
     }
 }

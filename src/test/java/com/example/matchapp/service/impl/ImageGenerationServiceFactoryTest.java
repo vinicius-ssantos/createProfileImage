@@ -82,9 +82,9 @@ class ImageGenerationServiceFactoryTest {
         }
 
         // Use a constructor that calls super with pre-configured properties and required services
-        public TestSpringAIImageGenerationService(PromptBuilderService promptBuilder, RateLimiterService rateLimiter) {
+        public TestSpringAIImageGenerationService(PromptBuilderService promptBuilder, RateLimiterService rateLimiter, RetryTemplate retryTemplate) {
             // Call the parent constructor with pre-configured properties and required services
-            super(createTestProperties(), promptBuilder, rateLimiter);
+            super(createTestProperties(), promptBuilder, rateLimiter, retryTemplate);
         }
 
         // Override methods that would normally make API calls
@@ -127,7 +127,7 @@ class ImageGenerationServiceFactoryTest {
 
         // Create test implementations with the mock services
         openAIService = new TestOpenAIImageGenerationService(mockPromptBuilder, retryTemplate, mockRateLimiter);
-        springAIService = new TestSpringAIImageGenerationService(mockPromptBuilder, mockRateLimiter);
+        springAIService = new TestSpringAIImageGenerationService(mockPromptBuilder, mockRateLimiter, retryTemplate);
 
         // Create a real ApplicationContext mock using Mockito.mock() instead of @Mock
         applicationContext = mock(ApplicationContext.class);
